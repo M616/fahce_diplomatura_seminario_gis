@@ -1,28 +1,55 @@
 ---
-title: "Introducción"
-format: html
-editor: visual
+title: "Sistemas de información geográfica. Introducción"
+format:
+  pdf:
+    toc: true
+    toc-title: Indice
+    number-sections: false
+editor_options: 
+  chunk_output_type: inline
+editor: 
+  markdown: 
+    wrap: 72
 ---
 
-Este trabajo se propone presentar como son tratados los objetos espacials vectoriales en R, principalmente a través del uso de la librería sf en un contexto de tidyverse.
+Este trabajo se propone presentar cómo son tratados los **objetos
+espaciales vectoriales en R**, principalmente a través del uso de la
+librería `{sf}` dentro del ecosistema `{tidyverse}`. Se abordan
+conceptos fundamentales sobre el formato, la manipulación y la
+visualización de datos vectoriales, y se exploran algunas de las
+**operaciones básicas de geoprocesamiento**, como la generación de
+buffers, la unión espacial y los filtros por atributos. Además, se
+muestra cómo utilizar distintas herramientas para la visualización tanto
+dinámica (`mapview()`) como estática (`ggplot2 + geom_sf()`), aplicadas
+a datos reales provenientes de fuentes públicas.
 
 ### Objetivo general
 
-**Manipular datos geográficos vectoriales en R**.
+**Manipular, visualizar y analizar datos geográficos vectoriales en R,
+utilizando herramientas del paquete `{sf}` y del ecosistema
+`{tidyverse}`.**
 
 ### Objetivos específicos
 
--   Comprender el formato y la estructura de los **datos vectoriales** en R.
+-   Comprender el formato y la estructura de los objetos vectoriales en
 
--   Abrir diferentes formatos de archivos.
+    R.  
 
--   Exploración de datos.
+-   Abrir y trabajar con diferentes formatos de archivos geoespaciales
+    (`.csv`, `.kml`, `.shp`, `.gpkg`).
 
--   Revisar algunas fuentes de datos disponibles (Gob. PBA, INDEC, OSM, entre otras).
+-   Explorar y visualizar datos espaciales mediante `mapview()` y
+    `geom_sf()`.
+
+-   Aplicar filtros por atributos y realizar uniones espaciales.
+
+-   Revisar y utilizar fuentes de datos abiertas disponibles (Gobierno
+    de la Provincia de Buenos Aires, INDEC, OpenStreetMap, RENABAP,
+    entre otras).
 
 ------------------------------------------------------------------------
 
-## VECTORES
+### 1) Tipo de Vectores. Carga y exploración de datos
 
 ```{r setup, warning=FALSE, echo=FALSE, message=FALSE}
 library(tidyverse)   # Manipulación de datos  
@@ -32,16 +59,84 @@ library(here)        # Para manejar el path
 library(janitor)     # Para limpieza de datos
 ```
 
-Puntos:
+En los Sistemas de Información Geográfica (SIG), los datos vectoriales
+se utilizan para representar entidades geográficas mediante tres tipos
+básicos de geometrías:
 
-Centros de Salud
+-   **Puntos:** representan ubicaciones precisas, como edificios,
+    centros de salud o antenas.
+
+-   **Líneas:** representan elementos lineales, como caminos, ríos o
+    redes de transporte.
+
+-   **Polígonos:** representan superficies delimitadas, como barrios,
+    parcelas o áreas censales.
+
+Cuando se cargan en R mediante la librería {sf}, estos datos vectoriales
+se transforman en data frames espaciales, también conocidos como
+geodataframes u objetos sf. Al igual que un data.frame o un tibble,
+estos objetos tienen filas (una por cada entidad geográfica) y columnas
+(atributos descriptivos). Lo que los distingue es la inclusión de una
+columna especial llamada geometry, que almacena la información espacial
+(coordenadas de puntos, líneas o polígonos).
+
+Este diseño permite trabajar de forma integrada con los datos
+alfanuméricos y espaciales. Por ejemplo, al aplicar funciones como
+print() o head() se visualiza tanto la tabla como un resumen de la
+geometría. Además, los objetos sf son plenamente compatibles con el
+ecosistema {tidyverse}, lo que permite usar funciones como filter(),
+mutate(), group_by() o select() sobre capas espaciales. Estas
+operaciones pueden luego complementarse con funciones específicas para
+análisis geográficos como st_join(), st_buffer(), st_intersection(),
+entre otras que se verán más adelante.
+
+Una vez abiertos, los datos pueden explorarse visualmente de dos formas
+principales:
+
+-   **Visualización interactiva con `mapview()`:** permite inspeccionar
+    los datos de forma dinámica, hacer zoom, ver atributos al pasar el
+    cursor, y superponer capas. Esta herramienta es ideal para la etapa
+    exploratoria, aunque **no puede visualizarse directamente en este
+    documento PDF**. Se recomienda usarla durante el trabajo en RStudio,
+    o en informes en formato HTML.
+
+-   **Visualización estática con `ggplot2` y `geom_sf()`:** permite
+    generar mapas reproducibles de alta calidad, adecuados para
+    informes, publicaciones o presentaciones. Este enfoque se
+    desarrollará más adelante en el documento.
+
+A continuación, se presentan ejemplos concretos de cada tipo de
+geometría (puntos, líneas y polígonos), utilizando fuentes de datos
+abiertas provistas por organismos oficiales (Gobierno de la Provincia de
+Buenos Aires, INDEC, RENABAP, OpenStreetMap, entre otros). Los datos
+provienen de distintos formatos geográficos (como .csv, .kml, .shp y
+.gpkg) y son abiertos en R mediante las funciones st_read() (cuando el
+archivo ya contiene geometría) o st_as_sf() (cuando la geometría se
+construye a partir de coordenadas).
+
+#### Puntos
+
+**Capa:** Establecimientos de Salud Públicos.
+
+**Fuente:** Ministerio de Salud de la Provincia de Buenos Aires. ( A
+través de Portal de Datos Abiertos de la Provincia de Buenos Aires).
+
+**Link:**
+<https://catalogo.datos.gba.gob.ar/dataset/establecimientos-salud/archivo/c52f9497-9eab-4ecd-a382-b4e4c6033a02>
+
+**Formato:** `.csv` (valores separados por comas)
+
+El formato `.csv` (Comma-Separated Values) es un formato tabular
+ampliamente utilizado, aunque **no incluye información espacial
+directamente**. Para convertirlo en un objeto espacial, es necesario
+indicar manualmente qué columnas contienen las coordenadas (en este
+caso: `long` y `lat`). Para ello se utiliza `st_as_sf()` de la librería
+`{sf}`.
 
 ```{r}
 salud<-
   read_delim(here("data/raw/salud/establecimientos_salud_publicos-2025.csv"), 
     delim = ";", escape_double = FALSE, trim_ws = TRUE)
-
-
 ```
 
 ```{r}
@@ -52,163 +147,206 @@ salud_sf <-
 
 ```
 
-Establecimientos educativos
+**Capa:** Establecimientos educativos.
 
-Líneas:
+**Fuente:** DGCyE. (A través de Portal de Datos Abiertos de la Provincia
+de Buenos Aires).
 
-OSM
+**Link:**
+<https://catalogo.datos.gba.gob.ar/dataset/establecimientos-educativos>
 
-Poligonos
+**Formato:** `.geojson` (GeoJSON)
 
-Radios censales;
+El **formato `.geojson`** es una extensión del formato JSON
+especialmente diseñado para representar información geoespacial. Es un
+formato **ligero, basado en texto plano**, ampliamente utilizado para
+intercambio de datos en la web y compatible con una gran variedad de
+plataformas y librerías.
 
-RENABAP
+A diferencia del `.csv`, los archivos `.geojson` **ya contienen
+información geométrica estructurada**, y pueden abrirse directamente
+como objetos `sf` usando `st_read()`, sin necesidad de especificar
+columnas de coordenadas.
+
+```{r}
+escuelas <-
+  st_read(here("data/raw/educacion/establecimientos-educativos-09062025.geojson"))
+```
+
+#### Líneas
+
+**Capa:** Avenidas del partido de La Plata.
+
+**Fuente:** OpenStreetMap (OSM), descargado mediante API.
+
+**Formato:** .gpkg (GeoPackage).
+
+El formato GeoPackage (.gpkg) es un estándar moderno y recomendado para
+trabajar con información geoespacial. A diferencia de archivos como .shp
+(que requieren múltiples archivos complementarios), un .gpkg almacena
+todos los datos en un único archivo, incluyendo geometría, atributos,
+proyecciones y múltiples capas.
+
+```{r}
+avenidas <-
+  st_read(here("data/raw/OSM/avenidas_osm.gpkg"))
+```
+
+#### Polígonos
+
+**Capa:** Radios censales 2022
+
+**Fuente:** Repositorio Institucional CONICET (Rodríguez, Gonzalo
+Martín)
+
+**Link:** <https://ri.conicet.gov.ar/handle/11336/238198>
+
+**Formato:** .shp (Shapefile).
+
+El formato Shapefile (.shp) es uno de los formatos vectoriales más
+antiguos y extendidos en los Sistemas de Información Geográfica. Fue
+desarrollado por ESRI y permite almacenar información geoespacial de
+puntos, líneas o polígonos, junto con sus atributos.
+
+Un shapefile no es un único archivo, sino un conjunto de al menos tres
+archivos obligatorios, que deben estar en la misma carpeta para que la
+información sea leída correctamente:
+
+-   .shp: contiene las geometrías (la representación espacial de los
+    objetos).
+
+-   .shx: contiene un índice de las geometrías, que permite un acceso
+    más rápido.
+
+-   .dbf: almacena los atributos (es una tabla en formato dBase, similar
+    a una hoja de cálculo).
+
+Además, pueden aparecer archivos adicionales:
+
+-   .prj: contiene la información de proyección (sistema de
+    coordenadas).
+
+-   .cpg: indica la codificación de caracteres del archivo .dbf (útil
+    para mostrar tildes y eñes).
+
+-   .qpj: una variante moderna del .prj, usada por algunos programas
+    como QGIS.
+
+Para trabajar correctamente con un shapefile, es importante mantener
+juntos todos estos archivos. El archivo .shp por sí solo no es
+suficiente.
+
+En este caso, se trata de la capa de radios censales publicada como
+insumo para el Censo Nacional 2022. Representa unidades geográficas en
+las que se organizan los operativos censales, y es una capa clave para
+análisis sociodemográficos.
+
+```{r}
+radios <- 
+  st_read(here("data/raw/censo/radios_censales/Radios 2022 v2025-1.shp"))
+```
 
 ::: callout-warning
-Al trabajar con las geometrías del censo recordá que sólo excepcionalmente en 2 provincias (Buenos Aires y Mendoza)
-
-DPE Bs As https://www.mapas.estadistica.ec.gba.gov.ar/portal/apps/sites/#/mapas-estadisticos/pages/descargas-shapes
-
-Anexo censo 2022. Código numérico para gobiernos locales <https://www.indec.gob.ar/ftp/cuadros/menusuperior/clasificadores/anexo_codigo_gobiernos_locales_2022.pdf>
-
-Base REDATAM <https://redatam.indec.gob.ar/binarg/RpWebEngine.exe/Portal?BASE=CPV2022&lang=ESP>
-
-<http://www.bahra.gob.ar/>
-
-<https://portalgeoestadistico.indec.gob.ar/maps/geoportal/nota_gobiernos_locales.pdf>
-
-IGN
-
-<https://www.ign.gob.ar/NuestrasActividades/InformacionGeoespacial/CapasSIG>
+Al trabajar con las geometrías del censo recordá que en la mayoría de
+las provincias no hay correspondencia entre los gobiernos locales
+(Municipios) y los departamentos (partidos en PBA, comunas en CABA). Ver
+(INDEC, 1999), (Vapñarsky, 2004). Podés descargar los metadatos del
+censo (inluídas las unidades geoestadísticas y los códigos desde
+[acá](https://www.indec.gob.ar/ftp/cuadros/poblacion/metadatos_censo2022_redatam.zip)).
 :::
 
+**Capa:** Barrios populares (RENABAP)\
+**Fuente:** Registro Nacional de Barrios Populares (RENABAP), disponible
+en datos.gob.ar
+
+**Link:**
+<https://datos.gob.ar/dataset/habitat-registro-nacional-barrios-populares>\
+**Formato:** `.gpkg` mal guardado (sin extensión)
+
+Esta capa contiene los polígonos correspondientes a los **barrios
+relevados por el RENABAP**, que representan áreas urbanas informales
+reconocidas oficialmente por el Estado Nacional. Estos datos permiten
+identificar situaciones de vulnerabilidad habitacional y son clave en
+estudios urbanos, sociales y de accesibilidad.
+
+El archivo provisto está en formato GeoPackage, pero fue **mal guardado
+sin extensión**, lo que genera una advertencia al intentar leerlo con
+`{sf}`. Aun así, `st_read()` logra interpretar correctamente el
+contenido si se especifica la ruta al archivo.
+
 ```{r}
-#| label: geometrias del censo
-#| eval: false
-#| include: true
-
-# URL del archivo ZIP (https://ri.conicet.gov.ar/handle/11336/149711)
-url_censo <- "https://ri.conicet.gov.ar/bitstream/handle/11336/149711/RADIOS_2022_V2025-1.zip?sequence=2&isAllowed=y"
-
-# Creo quna carpeta
-dir.create(here('datos_censo'))
-
-# Descargar el archivo
-download.file(
-  url = url_censo,
-  destfile = here("datos_censo/radios_censales.zip")
-)
-
+renabap <- 
+  st_read(here("data/raw/renabap/renabap-datos-barrios-gpkg"))
 ```
 
-```{r}
-#| eval: false
-#| include: true
-# Descomprimir en la misma carpeta
-unzip(
-  zipfile = here("datos_censo/radios_censales.zip"),
-  exdir = here("datos_censo")  # Carpeta destino
-)
 
-# Listar archivos descomprimidos (para verificar)
-archivos <- list.files(here("datos_censo"), pattern = "\\.shp$",  recursive = TRUE)
-print(archivos)
-```
+### Visualización interactiva con mapview
+
+La función mapview() permite explorar datos espaciales de forma rápida e interactiva. A continuación se muestran algunos ejemplos con las capas cargadas:
+
+1. Visualización básica (por defecto):
 
 ```{r}
-# Cargar el shapefile
-radios <- st_read(here("data/raw/censo/radios_censales/Radios 2022 v2025-1.shp"))
-radios <- clean_names(radios)
-
-# Verificar
-head(radios)
-
-```
-
-```{r}
-
-radios |> st_drop_geometry() |> head()
-#esto de mapview para explorar puede demorar mucho
-#radios |> filter(prov == '06') |> mapview()
-```
-
-A veces explorar con mapview puede no ser ericiente.
-
-Probamos con ggplot para graficar y ver los radios. En este caso los radios censales de la Provincia de Buenos Aires (prov = 06)
-
-```{r}
-radios_filtrados <- radios |> filter(prov == '06')
-
-ggplot(radios_filtrados) +
-  geom_sf(fill = "lightblue", color = "gray40", size = 0.1) +
-  labs(title = "Radios Censales - Provincia de Buenos Aires",
-       subtitle = "Fuente: INDEC",
-       caption = "Cod. Provincia 06") +
-  theme_minimal()
-
-```
-
-```{r}
-radios_filtrados <- radios |> filter(prov == '06' & depto == '441' )
-radios_filtrados <- radios |> filter(prov == '06' & depto == '441' )
-
-ggplot(radios_filtrados) +
-  geom_sf(fill = "lightblue", color = "gray40", size = 0.1) +
-  labs(title = "Radios Censales - Provincia de Buenos Aires",
-       subtitle = "Fuente: INDEC",
-       caption = "Cod. Provincia 06") +
-  theme_minimal()
-```
-
-<https://spatialreference.org/ref/epsg/3857/>
-
-Filtramos el departamento de La Plata (ver documentación censo 2022, 'Códigos Geográficos').
-
-La Plata
-
-06441
-
-```{r}
-#paso a minusculos 
-#names(radios) <- 
-#  tolower(names(radios))
-
-radios <- 
-  radios |> mutate(depto_ = paste0(prov,depto) )
-
-
-lp <- 
-  radios |> filter(depto_ == '06441')
-  #radios |> filter(depto_ == '14182')
-#mapview(lp)
-```
-
-```{r}
+#| echo: true
 #| eval: false
 #| include: false
-# Crear el mapa
-lp <- 
-  st_transform(lp, 4326)
+mapview(salud_sf)
 ```
+
+2. Colorear por variable categórica (automático):
 
 ```{r}
-ggplot() +
-  geom_sf(data = lp, fill = NA, color = "blue", size = 0.3) +
-  theme_minimal() +
-  labs(title = "Radios Censales - La Plata")
+#| echo: true
+#| eval: false
+#| include: false
+mapview(escuelas, zcol = "sector")
 ```
 
-El radio 064417101 es la isla martin garcía
-
-```{r}
-lp <- 
-  lp |> 
-  filter(cod_2022 != '064417101' )
-```
+3. Personalizar colores por categoría:
 
 ```{r}
-ggplot() +
-  geom_sf(data = lp, fill = NA, color = "blue", size = 0.3) +
-  theme_minimal() +
-  labs(title = "Radios Censales - La Plata")
+#| echo: true
+#| eval: false
+#| include: false
+cols_sector <- c("Público" = "steelblue", "Privado" = "orange")
+
+mapview(
+  escuelas,
+  zcol = "sector",
+  col.regions = cols_sector,
+  layer.name = "Escuelas por sector"
+)
+
 ```
+
+4. Superposición simple de capas:
+```{r}
+#| echo: true
+#| eval: false
+#| include: false
+mapview(renabap) + mapview(salud_sf)
+```
+
+
+5. Superposición con estilos personalizados:
+```{r}
+#| echo: true
+#| eval: false
+#| include: false
+mapview(
+  renabap,
+  col.regions = "tomato",
+  color = "darkred",
+  alpha.regions = 0.5,
+  layer.name = "Barrios RENABAP"
+) +
+mapview(
+  salud_sf,
+  col.regions = "navy",
+  layer.name = "Centros de Salud"
+)
+
+```
+
+
+Podés ajustar colores, nombres de capas y niveles de transparencia para hacer tus visualizaciones más claras y efectivas. Recordá que mapview() no se renderiza en PDF, pero sí en HTML o desde RStudio.

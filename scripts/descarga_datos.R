@@ -22,8 +22,9 @@ dirs <- c(
   "data/raw/censo",
   "data/raw/renabap",
   "data/raw/OSM",
-  "data/processed"
-)
+  "data/processed",
+  "data/raw/ovs"
+  )
 
 walk(dirs, ~{
   if (!dir.exists(here(.x))) {
@@ -126,6 +127,18 @@ if (!is.null(avenidas$osm_lines)) {
     filter(!is.na(name)) %>%
     st_transform(4326)
   
-  st_write(avenidas_sf, here("data/raw/OSM/avenidas_osm.gpkg"))
+  st_write(avenidas_sf, here("data/raw/OSM/avenidas_osm.gpkg"), append = FALSE)
   } 
 
+
+# 8. DESCARGA DE DATOS DEL OVS ------------------------------------------------
+
+dir_ovs <- here("data/raw/ovs")
+if (!dir.exists(dir_ovs)) dir.create(dir_ovs, recursive = TRUE)
+
+url_ovs <- "https://drive.google.com/uc?export=download&id=1Jql3hyztfuGKhXLzkWjYoCcXZ-fSaJ-S"
+destino_ovs <- here(dir_ovs,'ovs_terrenos_ta_2022_06_RMBA.zip')
+
+descargar_archivo(url_ovs,destino_ovs)
+unzip(destino_ovs, exdir = dir_ovs)
+file.remove(destino_ovs)
