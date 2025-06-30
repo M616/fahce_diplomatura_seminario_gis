@@ -1,0 +1,108 @@
+---
+title: "Sistemas de información geográfica"
+format:
+  pdf:
+    toc: true
+    toc-title: Indice
+    number-sections: false
+editor_options: 
+  chunk_output_type: inline
+---
+
+# Actividad práctica 1
+
+### **Temas**
+
+introduccion: geoide, tipo de coordenadas, CRS
+
+Gis: datos vectoriales y datos raster. tipos de archivos
+-   Tipo de geometrías
+-   Descarga de polígonos de radios censales 2022 y establecimientos educativos (DGCyE),
+-   Calcular el centroide de un polígono
+-   Cambiar el CRS de un objeto,
+-   Calcular distancia euclideana entre 2 puntos
+-   Exportar archivos en formato gpkg
+
+## Representación de datos espaciales
+
+En los Sistemas de Información Geográfica (SIG), los datos geográficos pueden representarse de diferentes formas según su naturaleza:
+
+-   **Puntos**, como la ubicación de escuelas o domicilios.
+-   **Líneas**, como rutas o ríos.
+-   **Polígonos**, como barrios, radios censales, provincias o áreas de cobertura.
+-   **Celdas raster**, como imágenes satelitales o mapas de temperatura.
+
+Cada uno de estos objetos puede tener atributos asociados (por ejemplo, nombre, superficie, población) y una **ubicación espacial** referida a la Tierra.
+
+## Proyecciones cartográficas
+
+Al representar la Tierra en un plano, inevitablemente se introduce **distorsión**. Las proyecciones pueden deformar:
+
+-   Las **formas**
+-   Las **superficies**
+-   Las **distancias**
+-   Los **ángulos**
+
+Cada proyección intenta minimizar alguno de estos aspectos, pero **ninguna puede conservarlos todos a la vez**. Por eso es clave elegir la proyección adecuada según el objetivo del análisis.
+
+------------------------------------------------------------------------
+
+## Sistemas de Referencia de Coordenadas (SRC)
+
+La posición geográfica de los objetos se expresa a través de un **Sistema de Referencia de Coordenadas (SRC)**. Existen dos tipos principales:
+
+-   **Geográficos**: usan coordenadas angulares (grados de latitud y longitud). Son útiles para trabajar a escalas amplias como países o continentes.
+-   **Proyectados**: convierten la superficie curva de la Tierra en un plano, utilizando coordenadas cartesianas (X, Y, en metros). Se prefieren para escalas más detalladas, como ciudades o barrios.
+
+La elección del SRC depende del tipo de análisis. Trabajar en un SRC incorrecto puede generar errores en cálculos de distancias, áreas o relaciones espaciales.
+
+::: callout-important
+#### Sistemas de coordenadas en Argentina: POSGAR
+
+En Argentina, la autoridad encargada de definir y regular los **sistemas de referencia geodésicos** es el **Instituto Geográfico Nacional (IGN)**. Este organismo es el responsable de establecer el marco geodésico nacional y proveer servicios vinculados a la georreferenciación precisa de datos espaciales.
+
+El sistema de referencia oficial es el **POSGAR (Posiciones Geodésicas Argentinas)**, basado en el marco global **SIRGAS** y compatible con el sistema internacional **WGS84**.
+
+El POSGAR cuenta con distintas versiones (POSGAR 94, POSGAR 98, POSGAR 2007), que han ido mejorando su precisión en base a nuevas mediciones satelitales y ajustes continentales.
+
+Cuando se trabaja con datos geoespaciales en **la provincia de Buenos Aires**, y particularmente en la ciudad de **La Plata**, es importante tener en cuenta algunos aspectos clave para garantizar la correcta georreferenciación y el análisis espacial:
+
+-   Verificar que los datos estén en un **sistema proyectado**, como **Gauss-Krüger**, utilizando **POSGAR como datum**.
+
+-   Utilizar el **sistema de referencia de coordenadas (CRS)** adecuado a la zona. La provincia de Buenos Aires se encuentra en la **faja 5**, que en POSGAR 2007 corresponde al código **EPSG:5347**.
+
+-   Asegurarse de que **todos los datasets estén en el mismo CRS**, para evitar problemas en la visualización o errores en cálculos de distancia, área o relaciones espaciales.
+
+-   Podés consultar información oficial, acceder a servicios de georreferenciación y descargar capas geográficas desde el sitio del **Instituto Geográfico Nacional (IGN)**: <https://www.ign.gob.ar>
+:::
+
+------------------------------------------------------------------------
+
+::: callout-quote
+“Todo está relacionado con todo, pero las cosas más cercanas están más relacionadas que las cosas lejanas.”
+
+Fuente: Tobler, W. (1970). *A computer movie simulating urban growth in the Detroit region*. *Economic Geography*, 46(sup1), 234–240. https://doi.org/10.2307/143141
+:::
+
+## ️ Capas, datos vectoriales y ráster
+
+La información en un SIG se organiza en **capas temáticas**. Cada capa contiene un tipo específico de datos: por ejemplo: capa de escuelas (puntos), radios censales (polígonos), pixels (con una o más variables). Estas capas pueden analizarse por separado o en conjunto.
+
+Los datos espaciales pueden presentarse como:
+
+-   **Archivos vectoriales** (`.shp`, `.geojson`, etc.): describen formas geométricas con coordenadas.
+-   **Rásters** (`.tif`, `.img`, etc.): representan variables continuas con grillas de píxeles.
+
+Cada elemento geográfico tiene **atributos asociados** que permiten enriquecer el análisis (Ej: la matrícula de una escuela o la densidad poblacional de un radio)
+
+------------------------------------------------------------------------
+
+## Consideraciones para trabajar en un SIG
+
+-   Usar datos confiables y bien georreferenciados.
+-   Verificar el sistema de coordenadas.
+-   Seleccionar las proyecciones adecuadas según la escala.
+-   Entender las limitaciones de los métodos utilizados.
+-   Complementar el análisis visual con herramientas estadísticas.
+
+Bibliografia

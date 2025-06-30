@@ -1,5 +1,5 @@
 ---
-title: "Sistemas de información geográfica. Introducción"
+title: "Sistemas de información geográfica. TP1"
 format:
   pdf:
     toc: true
@@ -49,7 +49,7 @@ utilizando herramientas del paquete `{sf}` y del ecosistema
 
 ------------------------------------------------------------------------
 
-### 1) Tipo de Vectores. Carga y exploración de datos
+### Tipo de Vectores. Carga y exploración de datos
 
 ```{r setup, warning=FALSE, echo=FALSE, message=FALSE}
 library(tidyverse)   # Manipulación de datos  
@@ -188,6 +188,37 @@ todos los datos en un único archivo, incluyendo geometría, atributos,
 proyecciones y múltiples capas.
 
 ```{r}
+#| eval: false
+#| include: false
+
+# Los datos utilizados provienen de OpenStreetMap (OSM), un proyecto colaborativo
+# que busca construir un mapa libre, abierto y editable del mundo. Al estilo de
+# una “Wikipedia de los mapas”, cualquier persona puede contribuir agregando
+# calles, edificios, escuelas o espacios públicos. Esto lo convierte en una fuente
+# valiosa, especialmente en contextos donde los datos oficiales son escasos o
+# difíciles de obtener.
+#
+# Una de sus ventajas clave es que OSM es gratuito, a diferencia de servicios como
+# Google Maps que tienen restricciones de uso o cobran por volumen. Por eso, es
+# muy utilizado en proyectos educativos, desarrollos de software libre,
+# investigaciones y planificación urbana.
+#
+# Sin embargo, la cobertura y el nivel de detalle pueden variar según la región,
+# ya que dependen del grado de participación de la comunidad local. En grandes
+# ciudades o áreas con comunidades activas, la cartografía suele estar muy
+# actualizada; en cambio, en zonas rurales o menos representadas, puede haber
+# vacíos o menor precisión. Aun así, es una fuente confiable, abierta y revisada
+# continuamente, con mecanismos para validar y corregir los datos aportados.
+#
+# En R, una de las formas más comunes de acceder a OSM es a través del paquete
+# osmdata, que permite realizar consultas a la API y descargar datos vectoriales
+# directamente como objetos sf. Ver catalogo: https://wiki.openstreetmap.org/wiki/Map_features
+```
+
+```{r}
+#| eval: false
+#| include: false
+#| echo: false
 avenidas <-
   st_read(here("data/raw/OSM/avenidas_osm.gpkg"))
 ```
@@ -349,4 +380,66 @@ mapview(
 ```
 
 
-Podés ajustar colores, nombres de capas y niveles de transparencia para hacer tus visualizaciones más claras y efectivas. Recordá que mapview() no se renderiza en PDF, pero sí en HTML o desde RStudio.
+Se debe tener en cuenta que mapview() no se renderiza en documentos PDF, pero sí puede visualizarse en HTML o directamente desde RStudio. Además, al presionar el botón Export en la visualización interactiva, se puede exportar la visualización en HTML.
+
+### Intersección espacial
+
+Si quiero hacer operaciones simples sin cambiar el crs usar sf::sf_use_s2(FALSE), para que no tire un error.
+
+
+```{r}
+sf::sf_use_s2(FALSE)
+
+```
+
+
+```{r}
+renabap <- st_transform(renabap, 5347 )
+salud_sf <- st_transform(salud_sf, 5347 )
+st_crs(renabap)
+st_crs(salud_sf)
+```
+
+
+Si quiero analizar los atributos de x o y utilizo st_join()
+
+```{r}
+st_join(salud_sf,
+          renabap,
+          join = st_intersects)
+```
+
+Si solo quiero saber que geometrías están dentro de otra uso st_filter()
+```{r}
+st_filter(salud_sf,
+          renabap,
+          join = st_intersects)
+
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = renabap, fill = "tomato", color = "darkred", alpha = 0.5) +
+  labs(title = "Barrios Populares (RENABAP)",
+       subtitle = "Fuente: datos.gob.ar",
+       caption = "Visualización con geom_sf()")+
+  theme_minimal()
+
+```
+
+
+```{r}
+renabap_pba <- 
+  renabap %>% filter(provincia == 'Buenos Aires')
+```
+
+
+```{r}
+ggplot() +
+  geom_sf(data = renabap_pba, fill = "tomato", color = "darkred", alpha = 0.5) +
+  labs(title = "Barrios Populares (RENABAP)",
+       subtitle = "Fuente: datos.gob.ar",
+       caption = "Visualización con geom_sf()")+
+  theme_minimal()
+```
+
