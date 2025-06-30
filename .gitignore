@@ -1,0 +1,17 @@
+# Archivos de R
+.Rhistory
+.RData
+.Rproj.user
+
+*.csv
+*.xlsx
+*.rds
+*.feather
+
+outputs/
+
+# Ignorar todo el contenido de data/ excepto la subcarpeta específica
+data/*
+!data/processed/
+data/processed/*
+!data/processed/redatam_censo/

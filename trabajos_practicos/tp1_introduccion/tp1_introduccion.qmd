@@ -1,0 +1,214 @@
+---
+title: "Introducción"
+format: html
+editor: visual
+---
+
+Este trabajo se propone presentar como son tratados los objetos espacials vectoriales en R, principalmente a través del uso de la librería sf en un contexto de tidyverse.
+
+### Objetivo general
+
+**Manipular datos geográficos vectoriales en R**.
+
+### Objetivos específicos
+
+-   Comprender el formato y la estructura de los **datos vectoriales** en R.
+
+-   Abrir diferentes formatos de archivos.
+
+-   Exploración de datos.
+
+-   Revisar algunas fuentes de datos disponibles (Gob. PBA, INDEC, OSM, entre otras).
+
+------------------------------------------------------------------------
+
+## VECTORES
+
+```{r setup, warning=FALSE, echo=FALSE, message=FALSE}
+library(tidyverse)   # Manipulación de datos  
+library(sf)          # Datos espaciales  
+library(mapview)     # Mapas interactivos  
+library(here)        # Para manejar el path
+library(janitor)     # Para limpieza de datos
+```
+
+Puntos:
+
+Centros de Salud
+
+```{r}
+salud<-
+  read_delim(here("data/raw/salud/establecimientos_salud_publicos-2025.csv"), 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE)
+
+
+```
+
+```{r}
+salud_sf <- 
+  st_as_sf(salud,
+           coords = c("long", "lat"),
+           crs = 4326)
+
+```
+
+Establecimientos educativos
+
+Líneas:
+
+OSM
+
+Poligonos
+
+Radios censales;
+
+RENABAP
+
+::: callout-warning
+Al trabajar con las geometrías del censo recordá que sólo excepcionalmente en 2 provincias (Buenos Aires y Mendoza)
+
+DPE Bs As https://www.mapas.estadistica.ec.gba.gov.ar/portal/apps/sites/#/mapas-estadisticos/pages/descargas-shapes
+
+Anexo censo 2022. Código numérico para gobiernos locales <https://www.indec.gob.ar/ftp/cuadros/menusuperior/clasificadores/anexo_codigo_gobiernos_locales_2022.pdf>
+
+Base REDATAM <https://redatam.indec.gob.ar/binarg/RpWebEngine.exe/Portal?BASE=CPV2022&lang=ESP>
+
+<http://www.bahra.gob.ar/>
+
+<https://portalgeoestadistico.indec.gob.ar/maps/geoportal/nota_gobiernos_locales.pdf>
+
+IGN
+
+<https://www.ign.gob.ar/NuestrasActividades/InformacionGeoespacial/CapasSIG>
+:::
+
+```{r}
+#| label: geometrias del censo
+#| eval: false
+#| include: true
+
+# URL del archivo ZIP (https://ri.conicet.gov.ar/handle/11336/149711)
+url_censo <- "https://ri.conicet.gov.ar/bitstream/handle/11336/149711/RADIOS_2022_V2025-1.zip?sequence=2&isAllowed=y"
+
+# Creo quna carpeta
+dir.create(here('datos_censo'))
+
+# Descargar el archivo
+download.file(
+  url = url_censo,
+  destfile = here("datos_censo/radios_censales.zip")
+)
+
+```
+
+```{r}
+#| eval: false
+#| include: true
+# Descomprimir en la misma carpeta
+unzip(
+  zipfile = here("datos_censo/radios_censales.zip"),
+  exdir = here("datos_censo")  # Carpeta destino
+)
+
+# Listar archivos descomprimidos (para verificar)
+archivos <- list.files(here("datos_censo"), pattern = "\\.shp$",  recursive = TRUE)
+print(archivos)
+```
+
+```{r}
+# Cargar el shapefile
+radios <- st_read(here("data/raw/censo/radios_censales/Radios 2022 v2025-1.shp"))
+radios <- clean_names(radios)
+
+# Verificar
+head(radios)
+
+```
+
+```{r}
+
+radios |> st_drop_geometry() |> head()
+#esto de mapview para explorar puede demorar mucho
+#radios |> filter(prov == '06') |> mapview()
+```
+
+A veces explorar con mapview puede no ser ericiente.
+
+Probamos con ggplot para graficar y ver los radios. En este caso los radios censales de la Provincia de Buenos Aires (prov = 06)
+
+```{r}
+radios_filtrados <- radios |> filter(prov == '06')
+
+ggplot(radios_filtrados) +
+  geom_sf(fill = "lightblue", color = "gray40", size = 0.1) +
+  labs(title = "Radios Censales - Provincia de Buenos Aires",
+       subtitle = "Fuente: INDEC",
+       caption = "Cod. Provincia 06") +
+  theme_minimal()
+
+```
+
+```{r}
+radios_filtrados <- radios |> filter(prov == '06' & depto == '441' )
+radios_filtrados <- radios |> filter(prov == '06' & depto == '441' )
+
+ggplot(radios_filtrados) +
+  geom_sf(fill = "lightblue", color = "gray40", size = 0.1) +
+  labs(title = "Radios Censales - Provincia de Buenos Aires",
+       subtitle = "Fuente: INDEC",
+       caption = "Cod. Provincia 06") +
+  theme_minimal()
+```
+
+<https://spatialreference.org/ref/epsg/3857/>
+
+Filtramos el departamento de La Plata (ver documentación censo 2022, 'Códigos Geográficos').
+
+La Plata
+
+06441
+
+```{r}
+#paso a minusculos 
+#names(radios) <- 
+#  tolower(names(radios))
+
+radios <- 
+  radios |> mutate(depto_ = paste0(prov,depto) )
+
+
+lp <- 
+  radios |> filter(depto_ == '06441')
+  #radios |> filter(depto_ == '14182')
+#mapview(lp)
+```
+
+```{r}
+#| eval: false
+#| include: false
+# Crear el mapa
+lp <- 
+  st_transform(lp, 4326)
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = lp, fill = NA, color = "blue", size = 0.3) +
+  theme_minimal() +
+  labs(title = "Radios Censales - La Plata")
+```
+
+El radio 064417101 es la isla martin garcía
+
+```{r}
+lp <- 
+  lp |> 
+  filter(cod_2022 != '064417101' )
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = lp, fill = NA, color = "blue", size = 0.3) +
+  theme_minimal() +
+  labs(title = "Radios Censales - La Plata")
+```
