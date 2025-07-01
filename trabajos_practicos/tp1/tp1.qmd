@@ -376,6 +376,29 @@ El objeto resultante, salud_joined, conserva la misma cantidad de filas que el o
 
 En las filas donde no hay intersección entre el centro de salud y algún barrio popular, las columnas correspondientes a renabap tendrán valores vacíos (NA). 
 
+Probemos ahora a hacer la union espacial pero colocanco como primer argumento (x) a la capa renabap:
+
+```{r}
+
+renabap_joined <- 
+  st_join(renabap,
+          salud_sf,
+          join = st_intersects)
+head(renabap_joined)
+```
+
+Observese que mientras el objeto original renabap antes del join tiene `r nrow(renabap)` filas, luego de hacer el join pasa a tener `r nrow(renabap_joined)` filas. ¿De donde surgen estas `r nrow(renabap_joined) - nrow(renabap) ` filas de diferencia? 
+
+La respuesta es que existen barrios populares con más de un centro de salud en su interior. En otras palabras, cuando un mismo barrio intersecta con más de un centro de salud, el resultado del st_join() devuelve una fila por cada combinación de barrio y centro de salud intersectante, generando así múltiples registros para un mismo barrio.
+
+```{r}
+renabap_joined |>
+  st_drop_geometry() |>
+  count(id_renabap, nombre_barrio, name = 'cantidad_centros_salud') |>
+  filter(cantidad_centros_salud > 1)
+```
+
+
 ### Otros geoprocesos vectoriales comunes
 
 Además de `st_join()`, existen varias funciones en `sf` que resultan fundamentales para el análisis espacial y la manipulación de datos vectoriales. Estas herramientas permiten trabajar con las geometrías y atributos de manera eficiente para responder a diferentes preguntas geográficas.
