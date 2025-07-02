@@ -302,6 +302,12 @@ Se debe tener en cuenta que mapview() no se renderiza en documentos PDF, pero s�
 
 ## Geoprocesos
 
+```{r}
+#| eval: false
+#| include: false
+sf::sf_use_s2(FALSE)
+```
+
 El **geoprocesamiento vectorial** consiste en aplicar operaciones espaciales sobre datos representados mediante geometrías como puntos, líneas o polígonos. Estas operaciones permiten transformar, combinar y analizar objetos espaciales para generar nueva información o extraer conclusiones útiles en contextos como salud pública, urbanismo, medio ambiente, transporte, entre otros.
 
 El geoprocesamiento vectorial permite:
@@ -311,6 +317,17 @@ El geoprocesamiento vectorial permite:
 -   Extraer atributos espaciales (área, perímetro, centroides, distancias, etc.).
 -   Filtrar o recortar geometrías según criterios espaciales.
 -   Preparar datos para visualización o modelado.
+
+| Función | ¿Qué hace? | Ejemplo básico |
+|---------------|-----------------------------------------|---------------|
+| `st_filter()` | Filtra objetos de una capa en función de su relación espacial con otra capa. No agrega atributos, solo selecciona. | `st_filter(puntos, poligono, .predicate = st_within)` |
+| `st_buffer()` | Genera un área de influencia o zona de proximidad alrededor de una geometría. Muy útil para analizar cobertura o impacto. | `st_buffer(salud_sf, dist = 500)` |
+| `st_intersection()` | Devuelve la geometría que resulta de la superposición espacial entre dos capas. | `st_intersection(capa1, capa2)` |
+| `st_union()` | Une múltiples geometrías en una sola, útil para agrupar o simplificar capas. | `st_union(capa)` |
+| `st_difference()` | Calcula la diferencia entre dos geometrías, eliminando la parte común. | `st_difference(capa1, capa2)` |
+| `st_centroid()` | Calcula el centro geométrico de cada objeto. Útil para representar polígonos como puntos. | `st_centroid(poligonos)` |
+| `st_distance()` | Calcula la distancia mínima entre geometrías. Fundamental para análisis de cercanía. | `st_distance(puntos1, puntos2)` |
+| `st_area()` | Calcula el área de polígonos. Requiere un CRS proyectado para obtener resultados en m². | `st_area(poligonos)` |
 
 ### Unión espacial con `st_join()`
 
@@ -335,7 +352,7 @@ El resultado tendrá la geometría de x y los atributos agregados de y, según l
 **Tipos de relaciones espaciales usadas en `st_join()`:**
 
 | Relación espacial | Uso dentro de `st_join()` | ¿Qué hace? |
-|------------------|------------------|-------------------------------------|
+|------------------|------------------|------------------------------------|
 | **Intersección** | `join = st_intersects` | Une atributos si las geometrías se superponen en alguna parte. Muy común para unir puntos dentro de polígonos. |
 | **Dentro de** | `join = st_within` | Une solo si la geometría de `x` está completamente dentro de `y`. |
 | **Contiene** | `join = st_contains` | Une si `x` contiene completamente a `y`. |
@@ -356,7 +373,6 @@ Antes de ejecutar un geoproceso entre dos capas es necesario que **ambas estén 
 
 Queremos identificar qué centros de salud (`salud_sf`) están ubicados dentro de los barrios populares (`renabap`). Para ello, primero es necesario asegurarse de que ambas capas estén en un sistema de coordenadas proyectado (en este caso, `EPSG:5347`), ya que las operaciones espaciales —como la intersección— requieren coherencia en el CRS.
 
-
 ```{r}
 renabap <- st_transform(renabap, 5347 )
 salud_sf <- st_transform(salud_sf, 5347 )
@@ -369,25 +385,24 @@ salud_joined <-
   st_join(salud_sf,
           renabap,
           join = st_intersects)
-head(salud_joined)
+glimpse(salud_joined)
 ```
 
 El objeto resultante, salud_joined, conserva la misma cantidad de filas que el objeto original salud_sf (esto no siempre es así con st_intersects, como veremos más adelante). A sus atributos se le suman las columnas provenientes de renabap, en aquellos casos donde existe una intersección espacial.
 
-En las filas donde no hay intersección entre el centro de salud y algún barrio popular, las columnas correspondientes a renabap tendrán valores vacíos (NA). 
+En las filas donde no hay intersección entre el centro de salud y algún barrio popular, las columnas correspondientes a renabap tendrán valores vacíos (NA).
 
 Probemos ahora a hacer la union espacial pero colocanco como primer argumento (x) a la capa renabap:
 
 ```{r}
-
 renabap_joined <- 
   st_join(renabap,
           salud_sf,
           join = st_intersects)
-head(renabap_joined)
+glimpse(renabap_joined)
 ```
 
-Observese que mientras el objeto original renabap antes del join tiene `r nrow(renabap)` filas, luego de hacer el join pasa a tener `r nrow(renabap_joined)` filas. ¿De donde surgen estas `r nrow(renabap_joined) - nrow(renabap) ` filas de diferencia? 
+Observese que mientras el objeto original renabap antes del join tiene `r nrow(renabap)` filas, luego de hacer el join pasa a tener `r nrow(renabap_joined)` filas. ¿De donde surgen estas `r nrow(renabap_joined) - nrow(renabap)` filas de diferencia?
 
 La respuesta es que existen barrios populares con más de un centro de salud en su interior. En otras palabras, cuando un mismo barrio intersecta con más de un centro de salud, el resultado del st_join() devuelve una fila por cada combinación de barrio y centro de salud intersectante, generando así múltiples registros para un mismo barrio.
 
@@ -398,49 +413,96 @@ renabap_joined |>
   filter(cantidad_centros_salud > 1)
 ```
 
-
-### Otros geoprocesos vectoriales comunes
-
 Además de `st_join()`, existen varias funciones en `sf` que resultan fundamentales para el análisis espacial y la manipulación de datos vectoriales. Estas herramientas permiten trabajar con las geometrías y atributos de manera eficiente para responder a diferentes preguntas geográficas.
 
-| Función | ¿Qué hace? | Ejemplo básico |
-|-------------|---------------------------------------------|-------------|
-| `st_filter()` | Filtra objetos de una capa en función de su relación espacial con otra capa. No agrega atributos, solo selecciona. | `st_filter(puntos, poligono, .predicate = st_within)` |
-| `st_buffer()` | Genera un área de influencia o zona de proximidad alrededor de una geometría. Muy útil para analizar cobertura o impacto. | `st_buffer(salud_sf, dist = 500)` |
-| `st_intersection()` | Devuelve la geometría que resulta de la superposición espacial entre dos capas. | `st_intersection(capa1, capa2)` |
-| `st_union()` | Une múltiples geometrías en una sola, útil para agrupar o simplificar capas. | `st_union(capa)` |
-| `st_difference()` | Calcula la diferencia entre dos geometrías, eliminando la parte común. | `st_difference(capa1, capa2)` |
-| `st_centroid()` | Calcula el centro geométrico de cada objeto. Útil para representar polígonos como puntos. | `st_centroid(poligonos)` |
-| `st_distance()` | Calcula la distancia mínima entre geometrías. Fundamental para análisis de cercanía. | `st_distance(puntos1, puntos2)` |
-| `st_area()` | Calcula el área de polígonos. Requiere un CRS proyectado para obtener resultados en m². | `st_area(poligonos)` |
+### Filtrado espacial `st_filter()`
 
-------------------------------------------------------------------------
+Cuando deseamos identificar qué elementos de una capa espacial se encuentran dentro de otra capa —sin tener en cuenta los atributos de ambas— podemos utilizar la función st_filter(). Esta función permite aplicar filtros espaciales basados en relaciones geométricas, como la intersección, contención o proximidad. Por defecto, st_filter() usa la relación espacial st_intersects(), lo que significa que devuelve aquellos elementos cuya geometría se intersecta con al menos una geometría de la capa de referencia.
 
-------------------------------------------------------------------------
+```{r}
+st_filter(salud_sf,
+          renabap) %>% 
+  glimpse
+```
 
+### Áreas de influencia (buffer) con `st_buffer()`
+
+`st_buffer()`genera áreas de influencia alrededor de geometrías espaciales. La distancia del buffer se define en las unidades del sistema de referencia de coordenadas (CRS). Es especialmente útil para análisis de proximidad.
+
+```{r}
+salud_buffer <- 
+  st_buffer(salud_sf, dist = 500)
+```
+
+![](images/tp1_03_buffers_escuelas.png){fig-align="center"}
+
+### Intersección espacial entre capas: `st_intersection()` 
+
+La función `st_intersection()` permite calcular la intersección entre dos objetos espaciales, es decir, obtener únicamente las partes donde sus geometrías se superponen. El resultado es un nuevo objeto `sf` que contiene esas porciones compartidas con geometrías modificadas y atributos combinados de ambas capas.
+
+Por ejemplo, si se intersectan los polígonos de una capa de barrios con buffers de 500 metros construidos alrededor de centros de salud, el objeto resultante incluirá únicamente los fragmentos de barrios que caen dentro de esas áreas de influencia. No se conserva la geometría completa de los barrios ni de los buffers, sino solo las partes en las que coinciden espacialmente.
+
+Además de modificar la geometría, `st_intersection()` conserva los atributos de ambas capas originales. Es decir, cada fila del objeto resultante incluirá información tanto del barrio como del buffer (y por lo tanto, del centro de salud que lo originó). Esto lo diferencia de funciones como `st_filter()`, que filtran pero no modifican geometrías ni combinan atributos.
+
+```{r}
+salud_intersection <- 
+  st_intersection(renabap,
+                  salud_buffer)
+```
 
 ```{r}
 #| eval: false
 #| include: false
-sf::sf_use_s2(FALSE)
+mapview(salud_buffer, col.regions = 'yellow', alpha = 0.3)+ mapview(renabap, alpha = 0.3, col.region = 'green') + mapview(salud_sf, alpha = 0.3) + mapview(salud_intersection, col.regions = 'tomato' )
 ```
 
+**¿Qué ocurre con los nombres e índices al usar `st_intersection()`?**
 
+Cuando se aplica `st_intersection()`, el objeto resultante suele tener un número de filas mayor al de cualquiera de las capas originales. Esto se debe a que cada intersección individual entre geometrías se convierte en una nueva fila. Por ejemplo, si un buffer intersecta con tres barrios, eso generará tres filas diferentes en el resultado, una por cada combinación.
 
-Si solo quiero saber que geometrías están dentro de otra uso st_filter()
+En este nuevo objeto:
+
+-   El índice de filas se reinicia y **ya no coincide** con los índices de las capas originales.
+-   Se **combinan los atributos de ambas capas**. Si ambas tienen columnas con el mismo nombre, `sf` renombra automáticamente una de ellas (por ejemplo, agregando `.1` o `.2`).
+-   En algunos casos, se agregan columnas especiales (como `row.id`, `origins`, `L1`, `L2`) para identificar de dónde proviene cada geometría.
+-   Las geometrías del resultado representan **solo la parte compartida** entre ambas capas.
+
+Por estas razones, es importante inspeccionar el objeto resultante con funciones como `glimpse()`, `names()`, o `head()` para entender su estructura antes de usarlo en análisis posteriores.
 
 ```{r}
-st_filter(salud_sf,
-          renabap,
-          join = st_intersects)
+salud_intersection %>% glimpse()
 ```
 
 ```{r}
+  salud_intersection %>% 
+  #st_drop_geometry() |>
+  group_by(id_renabap) %>% 
+  mutate(  cantidad = n() ) %>% 
+  ungroup() %>% 
+  arrange(id_renabap) %>% 
+  filter(id_renabap == 57) 
+```
+
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+```{r}
+#| eval: false
+#| include: false
+p <- 
+  salud_intersection %>% 
+  #st_drop_geometry() |>
+  group_by(id_renabap) %>% 
+  mutate(  cantidad = n() ) %>% 
+  ungroup() %>% 
+  arrange(id_renabap) %>% 
+  filter(id_renabap == 57) 
+
 ggplot() +
-  geom_sf(data = renabap, fill = "tomato", color = "darkred", alpha = 0.5) +
-  labs(title = "Barrios Populares (RENABAP)",
-       subtitle = "Fuente: datos.gob.ar",
-       caption = "Visualización con geom_sf()")+
+  geom_sf(data = p, fill = "tomato", color = "darkred", alpha = 0.5)+
+  #geom_sf_text(data = p, aes(label = id), size = 3, color = "black") +  theme_minimal()+
+  facet_wrap(~ id) +
   theme_minimal()
 
 ```
