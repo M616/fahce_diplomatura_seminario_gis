@@ -1,5 +1,5 @@
 ---
-title: "Sistemas de información geográfica. TP1"
+title: "Sistemas de información geográfica. TP1: Geoprocesos con datos vectoriales."
 format:
   pdf:
     toc: true
@@ -14,7 +14,7 @@ editor_options:
 
 ## Objetivos
 
-Este trabajo se propone presentar cómo son tratados los **objetos espaciales vectoriales en R**, principalmente a través del uso de la librería `{sf}` dentro del ecosistema `{tidyverse}`. Se abordan conceptos fundamentales sobre el formato, la manipulación y la visualización de datos vectoriales, y se exploran algunas de las **operaciones básicas de geoprocesamiento**, como la generación de buffers, la unión espacial y los filtros por atributos. Además, se muestra cómo utilizar distintas herramientas para la visualización tanto dinámica (`mapview()`) como estática (`ggplot2 + geom_sf()`), aplicadas a datos reales provenientes de fuentes públicas.
+Este trabajo se propone presentar cómo son tratados los **objetos espaciales vectoriales en R**, principalmente a través del uso de la librería `{sf}` dentro del ecosistema `{tidyverse}`. Se abordan conceptos fundamentales sobre el formato, la manipulación y la visualización de datos vectoriales, y se exploran algunas de las **operaciones básicas de geoprocesamiento.**y de visualización tanto dinámica (`mapview()`) como estática (`ggplot2 + geom_sf()`), aplicadas a datos reales provenientes de fuentes públicas.
 
 #### Objetivo general
 
@@ -68,11 +68,17 @@ Una vez abiertos, los datos pueden explorarse visualmente de dos formas principa
 
     -   **Con `ggplot2` y `geom_sf()`:** permite generar mapas reproducibles y de alta calidad, con mayor control sobre la estética, las escalas, los temas y la combinación con otros tipos de gráficos. Este enfoque es especialmente adecuado para informes formales, publicaciones científicas o presentaciones, y se desarrollará más adelante en el documento.
 
-A continuación, se presentan ejemplos concretos de cada tipo de geometría (puntos, líneas y polígonos), utilizando fuentes de datos abiertas provistas por organismos oficiales (Gobierno de la Provincia de Buenos Aires, INDEC, RENABAP, OpenStreetMap, entre otros). Los datos provienen de distintos formatos geográficos (como .csv, .kml, .shp y .gpkg) y son abiertos en R mediante las funciones st_read() (cuando el archivo ya contiene geometría) o st_as_sf() (cuando la geometría se construye a partir de coordenadas). Se abordan algunas herramientas de exploración gráfica como plot() y mapview().
+A continuación, se presentan ejemplos concretos de cada tipo de geometría (puntos, líneas y polígonos), utilizando fuentes de datos abiertas provistas por organismos oficiales (Gobierno de la Provincia de Buenos Aires, INDEC, RENABAP, OpenStreetMap, entre otros). Los datos provienen de distintos formatos geográficos (como .csv, .kml, .shp y .gpkg) y son abiertos en R mediante las funciones `st_read()` (cuando el archivo ya contiene geometría) o `st_as_sf()` (cuando la geometría se construye a partir de coordenadas). Se abordan algunas herramientas de exploración gráfica como `plot()` y `mapview()`.
 
 ### Puntos
 
-**Capa:** Establecimientos de Salud Públicos. **Fuente:** Ministerio de Salud de la Provincia de Buenos Aires. ( A través de Portal de Datos Abiertos de la Provincia de Buenos Aires). **Link:** <https://catalogo.datos.gba.gob.ar/dataset/establecimientos-salud/archivo/c52f9497-9eab-4ecd-a382-b4e4c6033a02> **Formato:** `.csv` (valores separados por comas)
+**Capa:** Establecimientos de Salud Públicos.
+
+**Fuente:** Ministerio de Salud de la Provincia de Buenos Aires. ( A través de Portal de Datos Abiertos de la Provincia de Buenos Aires).
+
+**Link:** <https://catalogo.datos.gba.gob.ar/dataset/establecimientos-salud/archivo/c52f9497-9eab-4ecd-a382-b4e4c6033a02>
+
+**Formato:** `.csv` (valores separados por comas)
 
 El formato `.csv` (Comma-Separated Values) es un formato tabular ampliamente utilizado, aunque **no incluye información espacial directamente**. Para convertirlo en un objeto espacial, es necesario indicar manualmente qué columnas contienen las coordenadas (en este caso: `long` y `lat`). Para ello se utiliza `st_as_sf()` de la librería `{sf}`.
 
@@ -99,13 +105,13 @@ Si usamos `plot()` directamente sobre el objeto `sf`, se generarán múltiples p
 plot(salud_sf)
 ```
 
-Podemos seleccionar una sola columna (atributo) utilizando el nombre de la variable. Por ejemplo, si queremos graficar únicamente la variable 'Dep', usamos:
+Podemos seleccionar una sola columna (atributo) utilizando el nombre de la variable. Por ejemplo, si queremos graficar únicamente la variable `Dep`, usamos:
 
 ```{r}
 plot(salud_sf[,'Dep'])
 ```
 
-Esto mostrará un mapa donde las geometrías se colorean según los valores de la variable Dep.
+Esto mostrará un mapa donde las geometrías se colorean según los valores de la variable `Dep`.
 
 También podemos filtrar por fila, es decir, seleccionar una sola entidad geográfica (por ejemplo, un solo punto, línea o polígono) y graficarla:
 
@@ -115,7 +121,13 @@ plot(salud_sf[355,'Dep'])
 
 En este caso se visualiza solo el punto ubicado en la posición 355 del dataframe. Este método cobra más relevancia cunado queremos explorar polígonos, por ejemplo para ver la forma de algún radio censal o barrio.
 
-**Capa:** Establecimientos educativos. **Fuente:** DGCyE. (A través de Portal de Datos Abiertos de la Provincia de Buenos Aires). **Link:** <https://catalogo.datos.gba.gob.ar/dataset/establecimientos-educativos> **Formato:** `.geojson` (GeoJSON)
+**Capa:** Establecimientos educativos.
+
+**Fuente:** DGCyE. (A través de Portal de Datos Abiertos de la Provincia de Buenos Aires).
+
+**Link:** <https://catalogo.datos.gba.gob.ar/dataset/establecimientos-educativos>
+
+**Formato:** `.geojson` (GeoJSON)
 
 El **formato `.geojson`** es una extensión del formato JSON especialmente diseñado para representar información geoespacial. Es un formato **ligero, basado en texto plano**, ampliamente utilizado para intercambio de datos en la web y compatible con una gran variedad de plataformas y librerías.
 
@@ -128,7 +140,11 @@ escuelas <-
 
 ### Líneas
 
-**Capa:** Avenidas del partido de La Plata. **Fuente:** OpenStreetMap (OSM), descargado mediante API. **Formato:** .gpkg (GeoPackage).
+**Capa:** Avenidas del partido de La Plata.
+
+**Fuente:** OpenStreetMap (OSM), descargado mediante API.
+
+**Formato:** .gpkg (GeoPackage).
 
 El formato GeoPackage (.gpkg) es un estándar moderno y recomendado para trabajar con información geoespacial. A diferencia de archivos como .shp (que requieren múltiples archivos complementarios), un .gpkg almacena todos los datos en un único archivo, incluyendo geometría, atributos, proyecciones y múltiples capas.
 
@@ -170,27 +186,33 @@ avenidas <-
 
 ### Polígonos
 
-**Capa:** Radios censales 2022 **Fuente:** Repositorio Institucional CONICET (Rodríguez, Gonzalo Martín) **Link:** <https://ri.conicet.gov.ar/handle/11336/238198> **Formato:** .shp (Shapefile).
+**Capa:** Radios censales 2022
+
+**Fuente:** Repositorio Institucional CONICET (Rodríguez, Gonzalo Martín)
+
+**Link:** <https://ri.conicet.gov.ar/handle/11336/238198>
+
+**Formato:** .shp (Shapefile).
 
 El formato Shapefile (.shp) es uno de los formatos vectoriales más antiguos y extendidos en los Sistemas de Información Geográfica. Fue desarrollado por ESRI y permite almacenar información geoespacial de puntos, líneas o polígonos, junto con sus atributos.
 
 Un shapefile no es un único archivo, sino un conjunto de al menos tres archivos obligatorios, que deben estar en la misma carpeta para que la información sea leída correctamente:
 
--   .shp: contiene las geometrías (la representación espacial de los objetos).
+-   `.shp`: contiene las geometrías (la representación espacial de los objetos).
 
--   .shx: contiene un índice de las geometrías, que permite un acceso más rápido.
+-   `.shx`: contiene un índice de las geometrías, que permite un acceso más rápido.
 
--   .dbf: almacena los atributos (es una tabla en formato dBase, similar a una hoja de cálculo).
+-   `.dbf`: almacena los atributos (es una tabla en formato dBase, similar a una hoja de cálculo).
 
 Además, pueden aparecer archivos adicionales:
 
--   .prj: contiene la información de proyección (sistema de coordenadas).
+-   `.prj`: contiene la información de proyección (sistema de coordenadas).
 
--   .cpg: indica la codificación de caracteres del archivo .dbf (útil para mostrar tildes y eñes).
+-   `.cpg`: indica la codificación de caracteres del archivo .dbf (útil para mostrar tildes y eñes).
 
--   .qpj: una variante moderna del .prj, usada por algunos programas como QGIS.
+-   .`qpj`: una variante moderna del .prj, usada por algunos programas como QGIS.
 
-Para trabajar correctamente con un shapefile, es importante mantener juntos todos estos archivos. El archivo .shp por sí solo no es suficiente.
+Para trabajar correctamente con un shapefile, es importante mantener juntos todos estos archivos. El archivo `.shp` por sí solo no es suficiente.
 
 En este caso, se trata de la capa de radios censales publicada como insumo para el Censo Nacional 2022. Representa unidades geográficas en las que se organizan los operativos censales, y es una capa clave para análisis sociodemográficos.
 
@@ -207,8 +229,12 @@ plot(radios[1,1])
 Al trabajar con las geometrías del censo recordá que en la mayoría de las provincias no hay correspondencia entre los gobiernos locales (Municipios) y los departamentos (partidos en PBA, comunas en CABA). Ver (INDEC, 1999), (Vapñarsky, 2004). Podés descargar los metadatos del censo (inluídas las unidades geoestadísticas y los códigos desde [acá](https://www.indec.gob.ar/ftp/cuadros/poblacion/metadatos_censo2022_redatam.zip)).
 :::
 
-**Capa:** Barrios populares (RENABAP)\
-**Fuente:** Registro Nacional de Barrios Populares (RENABAP), disponible en datos.gob.ar **Link:** <https://datos.gob.ar/dataset/habitat-registro-nacional-barrios-populares>\
+**Capa:** Barrios populares (RENABAP)
+
+**Fuente:** Registro Nacional de Barrios Populares (RENABAP), disponible en datos.gob.ar
+
+**Link:** <https://datos.gob.ar/dataset/habitat-registro-nacional-barrios-populares>
+
 **Formato:** `.gpkg` mal guardado (sin extensión)
 
 Esta capa contiene los polígonos correspondientes a los **barrios relevados por el RENABAP**, que representan áreas urbanas informales reconocidas oficialmente por el Estado Nacional. Estos datos permiten identificar situaciones de vulnerabilidad habitacional y son clave en estudios urbanos, sociales y de accesibilidad.
@@ -220,9 +246,9 @@ renabap <-
   st_read(here("data/raw/renabap/renabap-datos-barrios-gpkg"))
 ```
 
-#### Visualización interactiva con mapview
+#### Visualización interactiva con `mapview()`
 
-La función mapview() permite explorar datos espaciales de forma rápida e interactiva. A continuación se muestran algunos ejemplos con las capas cargadas:
+La función `mapview()` permite explorar datos espaciales de forma rápida e interactiva. A continuación se muestran algunos ejemplos con las capas cargadas:
 
 1.  Visualización básica (por defecto):
 
@@ -249,7 +275,6 @@ mapview(escuelas, zcol = "sector")
 #| echo: true
 #| eval: false
 cols_sector <- c("Público" = "steelblue", "Privado" = "orange")
-
 
 escuelas |>  
   filter(municipio_nombre == 'Ensenada' ) |> 
@@ -319,7 +344,7 @@ El geoprocesamiento vectorial permite:
 -   Preparar datos para visualización o modelado.
 
 | Función | ¿Qué hace? | Ejemplo básico |
-|---------------|-----------------------------------------|---------------|
+|-------------------|------------------------------------|-------------------|
 | `st_filter()` | Filtra objetos de una capa en función de su relación espacial con otra capa. No agrega atributos, solo selecciona. | `st_filter(puntos, poligono, .predicate = st_within)` |
 | `st_buffer()` | Genera un área de influencia o zona de proximidad alrededor de una geometría. Muy útil para analizar cobertura o impacto. | `st_buffer(salud_sf, dist = 500)` |
 | `st_intersection()` | Devuelve la geometría que resulta de la superposición espacial entre dos capas. | `st_intersection(capa1, capa2)` |
@@ -352,7 +377,7 @@ El resultado tendrá la geometría de x y los atributos agregados de y, según l
 **Tipos de relaciones espaciales usadas en `st_join()`:**
 
 | Relación espacial | Uso dentro de `st_join()` | ¿Qué hace? |
-|------------------|------------------|------------------------------------|
+|-------------------|-------------------|----------------------------------|
 | **Intersección** | `join = st_intersects` | Une atributos si las geometrías se superponen en alguna parte. Muy común para unir puntos dentro de polígonos. |
 | **Dentro de** | `join = st_within` | Une solo si la geometría de `x` está completamente dentro de `y`. |
 | **Contiene** | `join = st_contains` | Une si `x` contiene completamente a `y`. |
@@ -369,16 +394,18 @@ Las otras funciones se emplean en situaciones específicas donde se requiere def
 Antes de ejecutar un geoproceso entre dos capas es necesario que **ambas estén en el mismo sistema de referencia de coordenadas (CRS)**. Estas se pueden transformar utilizando la función `st_transform()`. Además, si al trabajar con **distancias, áreas, perímetros u otras medidas métricas** es fundamental que el CRS sea **proyectado** (por ejemplo, EPSG:5347), ya que los sistemas geográficos (como WGS84) no ofrecen unidades adecuadas para cálculos precisos.
 :::
 
-#### Ejemplo práctico
+**Caso de estudio**
 
 Queremos identificar qué centros de salud (`salud_sf`) están ubicados dentro de los barrios populares (`renabap`). Para ello, primero es necesario asegurarse de que ambas capas estén en un sistema de coordenadas proyectado (en este caso, `EPSG:5347`), ya que las operaciones espaciales —como la intersección— requieren coherencia en el CRS.
 
 ```{r}
-renabap <- st_transform(renabap, 5347 )
+#| echo: true
+#| include: false
+renabap  <- st_transform(renabap, 5347 )
 salud_sf <- st_transform(salud_sf, 5347 )
 ```
 
-Luego utilizamos st_join() con st_intersects() para realizar la unión espacial. El resultado lo guardamos en un nuevo objeto llamado salud_joined:
+Luego utilizamos `st_join()` con `st_intersects()` para realizar la unión espacial. El resultado lo guardamos en un nuevo objeto llamado salud_joined:
 
 ```{r}
 salud_joined <- 
@@ -388,11 +415,11 @@ salud_joined <-
 glimpse(salud_joined)
 ```
 
-El objeto resultante, salud_joined, conserva la misma cantidad de filas que el objeto original salud_sf (esto no siempre es así con st_intersects, como veremos más adelante). A sus atributos se le suman las columnas provenientes de renabap, en aquellos casos donde existe una intersección espacial.
+El objeto resultante, `salud_joined`, conserva la misma cantidad de filas que el objeto original `salud_sf` (esto no siempre es así con st_intersects, como veremos más adelante). A sus atributos se le suman las columnas provenientes de `renabap`, en aquellos casos donde existe una intersección espacial.
 
-En las filas donde no hay intersección entre el centro de salud y algún barrio popular, las columnas correspondientes a renabap tendrán valores vacíos (NA).
+En las filas donde no hay intersección entre el centro de salud y algún barrio popular, las columnas correspondientes a renabap tendrán valores `NA`.
 
-Probemos ahora a hacer la union espacial pero colocanco como primer argumento (x) a la capa renabap:
+Probemos ahora a hacer la union espacial pero colocando como primer argumento (x) a la capa renabap:
 
 ```{r}
 renabap_joined <- 
@@ -436,7 +463,7 @@ salud_buffer <-
 
 ![](images/tp1_03_buffers_escuelas.png){fig-align="center"}
 
-### Intersección espacial entre capas: `st_intersection()` 
+### Intersección espacial entre capas: `st_intersection()`
 
 La función `st_intersection()` permite calcular la intersección entre dos objetos espaciales, es decir, obtener únicamente las partes donde sus geometrías se superponen. El resultado es un nuevo objeto `sf` que contiene esas porciones compartidas con geometrías modificadas y atributos combinados de ambas capas.
 
@@ -482,6 +509,31 @@ salud_intersection %>% glimpse()
   arrange(id_renabap) %>% 
   filter(id_renabap == 57) 
 ```
+
+### Excluir áreas superpuestas: `st_difference()`
+
+La función `st_difference()` devuelve las partes de una geometría que **no se superponen** con otra. Es útil para identificar áreas **excluidas** por una capa, como las zonas de un barrio que **no** están cubiertas por un buffer de salud.\
+
+```{r}
+#| eval: false
+#| include: false
+renabap %>% 
+  filter(provincia == 'Buenos Aires') %>% 
+st_difference(salud_buffer)
+```
+
+A diferencia de `st_intersection()`, no conserva atributos de la segunda capa, y las geometrías resultantes pertenecen solo a la primera.
+
+### Fusion de geometrías con `st_union()`
+
+La función `st_union()` permite **fusionar geometrías** en una sola, disolviendo los límites entre elementos. Se utiliza, por ejemplo, para unir todos los buffers en una única área de cobertura.\
+No conserva atributos individuales, pero puede combinarse con `group_by()` y `summarise()` si se desea agrupar por una variable antes de la unión.
+
+La función `st_centroid()` calcula el **centro geométrico** de cada objeto espacial. Es útil para representar áreas con un punto, por ejemplo, al ubicar etiquetas o simplificar visualizaciones.
+
+La función `st_distance()` calcula la **distancia** entre geometrías. Puede aplicarse entre puntos, líneas o polígonos, y devuelve una matriz de distancias por defecto. Si se desea conocer la distancia mínima entre dos capas, se puede usar con índices.
+
+La función `st_area()` calcula el **área** de geometrías tipo polígono. Devuelve un valor numérico en las unidades del sistema de referencia (por ejemplo, metros cuadrados si está en proyección métrica).
 
 ------------------------------------------------------------------------
 
