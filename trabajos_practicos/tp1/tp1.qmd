@@ -419,11 +419,9 @@ Además de `st_join()`, existen varias funciones en `sf` que resultan fundamenta
 ------------------------------------------------------------------------
 
 
-
-
-
-
 ```{r}
+#| eval: false
+#| include: false
 sf::sf_use_s2(FALSE)
 ```
 
@@ -435,7 +433,6 @@ Si solo quiero saber que geometrías están dentro de otra uso st_filter()
 st_filter(salud_sf,
           renabap,
           join = st_intersects)
-
 ```
 
 ```{r}
