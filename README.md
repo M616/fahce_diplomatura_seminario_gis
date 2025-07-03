@@ -2,8 +2,9 @@
 
 
 ## Trabajos Prácticos
-- [TP1: Introducción](trabajos_practicos/introduccion/)
-- [TP2: Geoprocesos](tp1/)
+- [Introducción](trabajos_practicos/introduccion/)
+- [TP1: Geoprocesos](trabajos_practicos/tp1/)
+- [TP2: Geoprocesos (cont.)](trabajos_practicos/tp2/)
 
 ## Requisitos
 - R >= 4.5.0
