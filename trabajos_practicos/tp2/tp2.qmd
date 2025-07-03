@@ -34,7 +34,7 @@ Aprender a **manipular datos geográficos vectoriales en R**, integrando informa
 -   Construir un **índice exploratorio** que combine accesibilidad y condiciones educativas como insumo para el análisis descriptivo.
 
 ::: callout-important
-## ¿Por qué trabajar con datos del Censo?
+##### ¿Por qué trabajar con datos del Censo?
 
 Los **datos censales** constituyen una de las fuentes más potentes y exhaustivas para el análisis territorial y social en Argentina. Su integración con herramientas de **Sistemas de Información Geográfica (SIG)** permite combinar variables sociodemográficas con coordenadas espaciales, abriendo un abanico de posibilidades para el análisis descriptivo, diagnóstico y toma de decisiones.
 
