@@ -138,7 +138,7 @@ A diferencia del `.csv`, los archivos `.geojson` **ya contienen información geo
 
 ```{r}
 escuelas <-
-  st_read(here("data/raw/educacion/establecimientos-educativos-09062025.geojson"))
+  st_read(here("data/raw/educacion/establecimientos-educativos-30062025.geojson"))
 ```
 
 ### Líneas

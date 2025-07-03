@@ -2,8 +2,8 @@
 
 
 ## Trabajos Prácticos
-- [TP1: Introducción`](trabajos_practicos/tp1_introduccion/)
-- [TP2: Análisis espacial](trabajos_practicos/tp2_analisis/)
+- [TP1: Introducción`](trabajos_practicos/introduccion/)
+- [TP2: Análisis espacial](tp1/)
 
 ## Requisitos
 - R >= 4.5.0
