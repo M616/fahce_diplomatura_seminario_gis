@@ -1,5 +1,7 @@
 ---
 title: "Sistemas de información geográfica. TP1: Geoprocesos con datos vectoriales."
+author: Marcos May
+email: mmmay@fahce.unlp.edu.ar
 format:
   pdf:
     toc: true
@@ -344,7 +346,7 @@ El geoprocesamiento vectorial permite:
 -   Preparar datos para visualización o modelado.
 
 | Función | ¿Qué hace? | Ejemplo básico |
-|-------------------|------------------------------------|-------------------|
+|------------------------|------------------------|------------------------|
 | `st_filter()` | Filtra objetos de una capa en función de su relación espacial con otra capa. No agrega atributos, solo selecciona. | `st_filter(puntos, poligono, .predicate = st_within)` |
 | `st_buffer()` | Genera un área de influencia o zona de proximidad alrededor de una geometría. Muy útil para analizar cobertura o impacto. | `st_buffer(salud_sf, dist = 500)` |
 | `st_intersection()` | Devuelve la geometría que resulta de la superposición espacial entre dos capas. | `st_intersection(capa1, capa2)` |
@@ -377,7 +379,7 @@ El resultado tendrá la geometría de x y los atributos agregados de y, según l
 **Tipos de relaciones espaciales usadas en `st_join()`:**
 
 | Relación espacial | Uso dentro de `st_join()` | ¿Qué hace? |
-|-------------------|-------------------|----------------------------------|
+|------------------------|------------------------|------------------------|
 | **Intersección** | `join = st_intersects` | Une atributos si las geometrías se superponen en alguna parte. Muy común para unir puntos dentro de polígonos. |
 | **Dentro de** | `join = st_within` | Une solo si la geometría de `x` está completamente dentro de `y`. |
 | **Contiene** | `join = st_contains` | Une si `x` contiene completamente a `y`. |
@@ -535,6 +537,10 @@ La función `st_distance()` calcula la **distancia** entre geometrías. Puede ap
 
 La función `st_area()` calcula el **área** de geometrías tipo polígono. Devuelve un valor numérico en las unidades del sistema de referencia (por ejemplo, metros cuadrados si está en proyección métrica).
 
+::: callout-note
+Los procesos de geoprocesamiento que se presentaron no son exclusivos de R ni del paquete `sf`, sino que forman parte del conjunto de herramientas fundamentales en cualquier Sistema de Información Geográfica (GIS). Estas operaciones son compartidas y utilizadas en otros lenguajes como Python (con librerías como `geopandas` y `shapely`) o en software de escritorio como QGIS o ArcGIS. La lógica subyacente es común a todos los entornos.
+:::
+
 ------------------------------------------------------------------------
 
 ------------------------------------------------------------------------
@@ -570,5 +576,9 @@ ggplot() +
   labs(title = "Barrios Populares (RENABAP)",
        subtitle = "Fuente: datos.gob.ar",
        caption = "Visualización con geom_sf()")+
+  annotation_scale(location = "bl", width_hint = 0.5) +
+  annotation_north_arrow(location = "tl", which_north = "true",
+                         style = north_arrow_fancy_orienteering)+
+  annotation_map_tile(alpha = 0.3)+
   theme_minimal()
 ```
