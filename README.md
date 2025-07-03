@@ -3,7 +3,7 @@
 
 ## Trabajos Prácticos
 - [TP1: Introducción`](trabajos_practicos/introduccion/)
-- [TP2: Análisis espacial](tp1/)
+- [TP2: Geoprocesos](tp1/)
 
 ## Requisitos
 - R >= 4.5.0
