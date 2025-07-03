@@ -12,17 +12,19 @@ editor_options:
   chunk_output_type: inline
 ---
 
+## Objetivos
+
 Este trabajo se propone introducir herramientas de análisis geoespacial con R aplicadas a una problemática educativa territorial: **la accesibilidad a escuelas secundarias** y las condiciones socioeducativas del entorno.
 
 El ejercicio se desarrolla en el partido de **La Plata**, y se trabajará exclusivamente con **datos geográficos vectoriales**, es decir, información representada como **puntos** (escuelas) y **polígonos** (radios censales), incorporando atributos provenientes del **Censo 2022**.
 
 ------------------------------------------------------------------------
 
-### Objetivo general
+#### Objetivo general
 
 Aprender a **manipular datos geográficos vectoriales en R**, integrando información territorial con variables sociodemográficas para el análisis de problemáticas sociales.
 
-### Objetivos específicos
+#### Objetivos específicos
 
 -   Comprender el formato y la estructura de los **datos vectoriales** en R (capas de puntos y polígonos).
 -   Incorporar y vincular información **censal georreferenciada**, combinando geometría espacial con atributos estadísticos.
@@ -45,7 +47,7 @@ En contextos donde otras fuentes tienen baja cobertura o disponibilidad (como re
 
 ------------------------------------------------------------------------
 
-## Paso 1: Carga y preparación de datos espaciales
+## Paso 1: Carga y preparación de datos censales
 
 ```{r setup, warning=FALSE, echo=FALSE, message=FALSE}
 library(tidyverse)   # Manipulación de datos  
@@ -56,13 +58,12 @@ library(nngeo)       # Para cálculos de distancia más cercana
 library(here)        # Para manejar el path
 library(janitor)     # Para limpieza de datos
 library(ggspatial)
-library(ggspatial)
+library(maptiles)
 library(prettymapr)
-
 ```
 
 ::: callout-warning
-Al trabajar con las geometrías del censo recordá que sólo excepcionalmente en 2 provincias (Buenos Aires y Mendoza)
+#### Enlaces útiles
 
 DPE Bs As https://www.mapas.estadistica.ec.gba.gov.ar/portal/apps/sites/#/mapas-estadisticos/pages/descargas-shapes
 
@@ -70,73 +71,36 @@ Anexo censo 2022. Código numérico para gobiernos locales <https://www.indec.go
 
 Base REDATAM <https://redatam.indec.gob.ar/binarg/RpWebEngine.exe/Portal?BASE=CPV2022&lang=ESP>
 
-<http://www.bahra.gob.ar/>
-
 <https://portalgeoestadistico.indec.gob.ar/maps/geoportal/nota_gobiernos_locales.pdf>
 
-IGN
-
-<https://www.ign.gob.ar/NuestrasActividades/InformacionGeoespacial/CapasSIG>
+IGN <https://www.ign.gob.ar/NuestrasActividades/InformacionGeoespacial/CapasSIG>
 :::
 
 ```{r}
-#| label: geometrias del censo
-#| eval: false
-#| include: true
-
-# URL del archivo ZIP (https://ri.conicet.gov.ar/handle/11336/149711)
-url_censo <- "https://ri.conicet.gov.ar/bitstream/handle/11336/149711/RADIOS_2022_V2025-1.zip?sequence=2&isAllowed=y"
-
-# Creo quna carpeta
-dir.create(here('datos_censo'))
-
-# Descargar el archivo
-download.file(
-  url = url_censo,
-  destfile = here("datos_censo/radios_censales.zip")
-)
-
+radios <- 
+  st_read(here('data/raw/censo/radios_censales/Radios 2022 v2025-1.shp'))
 ```
 
 ```{r}
-#| eval: false
-#| include: true
-# Descomprimir en la misma carpeta
-unzip(
-  zipfile = here("datos_censo/radios_censales.zip"),
-  exdir = here("datos_censo")  # Carpeta destino
-)
-
-# Listar archivos descomprimidos (para verificar)
-archivos <- list.files(here("datos_censo"), pattern = "\\.shp$",  recursive = TRUE)
-print(archivos)
-```
-
-```{r}
-# Cargar el shapefile
-radios <- st_read(here("datos_censo/Radios 2022 v2025-1.shp"))
-radios <- clean_names(radios)
-
-# Verificar
-head(radios)
-
-```
-
-```{r}
-
-radios |> st_drop_geometry() |> head()
+radios |> st_drop_geometry() |> glimpse()
 #esto de mapview para explorar puede demorar mucho
 #radios |> filter(prov == '06') |> mapview()
 ```
 
-A veces explorar con mapview puede no ser ericiente.
+## Visualización en `ggplot()` con `geom_sf()`
+
+A veces explorar con mapview puede no ser eficiente.
 
 Probamos con ggplot para graficar y ver los radios. En este caso los radios censales de la Provincia de Buenos Aires (prov = 06)
 
 ```{r}
-radios_filtrados <- radios |> filter(prov == '06')
+radios <- 
+  radios %>% clean_names()
 
-ggplot(radios_filtrados) +
+radios_pba <- 
+  radios |> filter(prov == '06')
+
+ggplot(radios_pba) +
   geom_sf(fill = "lightblue", color = "gray40", size = 0.1) +
   labs(title = "Radios Censales - Provincia de Buenos Aires",
        subtitle = "Fuente: INDEC",
@@ -146,10 +110,9 @@ ggplot(radios_filtrados) +
 ```
 
 ```{r}
-radios_filtrados <- radios |> filter(prov == '06' & depto == '441' )
-radios_filtrados <- radios |> filter(prov == '06' & depto == '441' )
+radios_pba <- radios |> filter(prov == '06' & depto == '441' )
 
-ggplot(radios_filtrados) +
+ggplot(radios_pba) +
   geom_sf(fill = "lightblue", color = "gray40", size = 0.1) +
   labs(title = "Radios Censales - Provincia de Buenos Aires",
        subtitle = "Fuente: INDEC",
@@ -210,13 +173,11 @@ ggplot() +
   labs(title = "Radios Censales - La Plata")
 ```
 
-
 ::: callout-warning
 Al trabajar con las geometrías del censo recordá que en la mayoría de las provincias no hay correspondencia entre los gobiernos locales (Municipios) y los departamentos (partidos en PBA, comunas en CABA). Ver (INDEC, 1999), (Vapñarsky, 2004). Podés descargar los metadatos del censo (inluídas las unidades geoestadísticas y los códigos desde [acá](https://www.indec.gob.ar/ftp/cuadros/poblacion/metadatos_censo2022_redatam.zip)).
 :::
 
-
-Paso 2: Clima Educativo del Hogar (REDATAM)
+## Clima Educativo del Hogar (REDATAM)
 
 Por el momento las consultas a la base censal las tenemos que hacer a través de la página del INDEC, usando REDATAM.
 
@@ -248,7 +209,7 @@ No corresponde: todas las personas del hogar tienen menos de 18 años o tienen u
 ```{r}
 library(readxl)
 clima <- 
-  read_excel("datos_censo/lp_clima_educativo.xlsX", 
+  read_excel(here("data/processed/redatam_censo/lp_clima_educativo.xlsX"), 
     range = "b12:h1061")
 
 clima <- 
@@ -257,48 +218,19 @@ clima <-
 head(clima)
 ```
 
-Si bien es una categoría ordinal, saco el promedio de clima educativo por radio censal, teniendo en cuenta completar aca.. ver si esta por hogar..
-
-\-
-
-\-
-
-\-
-
-\-
-
-\-
-
-\-
-
-\-
-
-\-
-
-\-
-
-\-
-
-\-
+Si bien es una categoría ordinal, saco el promedio de clima educativo de los hogares por radio censal.
 
 ```{r}
-#clima <- 
-  #clima |> 
-  #mutate(suma = muy_bajo + bajo + medio + alto + muy_alto ,
-  #       prop = (muy_bajo + bajo ) / suma ) |> 
-  #select(codigo, prop)
-
 clima <- 
   clima %>%
-  mutate(
-    total_hogares = muy_bajo + bajo + medio + alto + muy_alto,
+  mutate(total_hogares = muy_bajo + bajo + medio + alto +  muy_alto,
     promedio_eduhog = (
       1 * muy_bajo +
       2 * bajo +
       3 * medio +
       4 * alto +
       5 * muy_alto
-    ) / (total_hogares - no_corresponde)
+    ) / (total_hogares)
   )
 
 head(clima)
@@ -325,7 +257,6 @@ lp <-
   lp |> 
   mutate(codigo = as.double(cod_2022 )) |> 
   left_join(clima, by = 'codigo')
-head(lp)
 ```
 
 ```{r}
@@ -337,7 +268,7 @@ ggplot() +
 ```
 
 ```{r}
-lp <- st_transform(lp,4326)
+lp <- st_transform(lp,4326) ## esta transofrmacionse hace para usar el tile
 
 grafico_clima <-
   ggplot() +
@@ -348,8 +279,8 @@ grafico_clima <-
     size = 0 #sin grosor
   ) +
   scale_fill_gradient(
-    low = "#FFCCCB",  
-    high = "#8B0000", 
+    high = "#FFCCCB",  
+    low = "#8B0000", 
     name = "Promedio del clima educativo del hogar") +
   theme_minimal() +
   labs(
@@ -365,39 +296,36 @@ grafico_clima <-
   )
 
 grafico_clima+
-    annotation_map_tile(alpha = 0.2)
+    annotation_map_tile(alpha = 0.2)+
+  annotation_scale(location = "bl", width_hint = 0.5) +
+  annotation_north_arrow(location = "tr", which_north = "true",
+                         style = north_arrow_fancy_orienteering)
 
 ```
 
-Escuelas
+```{r}
+lp_3857 <- st_transform(lp, 3857)
+
+library(maptiles)
+# Paso 3: Obtener fondo satelital (tile) desde Esri
+bg <- get_tiles(lp_3857, provider = "OpenTopoMap", crop = TRUE)
+
+grafico_clima+
+layer_spatial(bg, alpha = 0.3) 
+
+```
+
+## Paso 2: carga y exploración de establecimientos educativos
 
 ```{r}
-url <- 'https://catalogo.datos.gba.gob.ar/dataset/4becb4b7-0a21-4fef-8f2c-30df7f345a01/resource/3951210e-7e0e-4fed-bbf1-0183e704c9ae/download/establecimientos-educativos-07042025.csv'
-
-# Creo quna carpeta
-dir.create(here('escuelas'))
-
-# Descargar el archivo
-download.file(
-  url = url,
-  destfile = here("escuelas/escuelas.csv")
-)
-
 escuelas <-
-  read_csv(here('escuelas/escuelas.csv'))
-head(escuelas)
-
-escuelas <- 
-  st_as_sf(escuelas,
-           coords = c('longitud','latitud'),
-           crs = 4326)
-
+  st_read(here('data/raw/educacion/establecimientos-educativos-30062025.geojson'))
 escuelas <- 
   escuelas %>% filter(municipio_nombre == 'La Plata')
 
 ```
 
-Accesibilidad escuelas secundarias
+## Accesibilidad escuelas secundarias
 
 ```{r}
 escuelas %>% 
@@ -475,156 +403,7 @@ ggplot() +
     legend.title = element_text(face = "bold", size = 10)  )
 ```
 
-Paso 2: Clima Educativo del Hogar (REDATAM)
-
-(ver documentación censo 2022, 'Definiciones y conceptos. Definiciones de la base de datos').
-
-Clima educativo del hogar (EDUHOG): promedio de años de estudio alcanzados para cada miembro del hogar de 18 años y más del hogar. Las categorías son:
-
-| Código | Rótulo         |
-|--------|----------------|
-| 1      | Muy bajo       |
-| 2      | Bajo           |
-| 3      | Medio          |
-| 4      | Alto           |
-| 5      | Muy alto       |
-| 9      | No corresponde |
-
-Muy bajo: menor a siete de años de máximo nivel de instrucción.
-
-Bajo: entre siete y diez años de máximo nivel de instrucción.
-
-Medio: entre once y trece años de máximo nivel de instrucción.
-
-Alto: entre catorce y quince años de máximo nivel de instrucción.
-
-Muy alto: dieciséis años o más de máximo nivel de instrucción.
-
-No corresponde: todas las personas del hogar tienen menos de 18 años o tienen un máximo nivel de instrucción ignorado.
-
-```{r}
-library(readxl)
-clima <- 
-  read_excel("datos_censo/lp_clima_educativo.xlsX", 
-    range = "b12:h1061")
-
-clima <- 
-  clean_names(clima)
-
-head(clima)
-```
-
-Si bien es una categoría ordinal, saco el promedio de clima educativo por radio censal, teniendo en cuenta completar aca.. ver si esta por hogar.. calcularlo por persona.
-
-\-
-
-\-
-
-\-
-
-\-
-
-\-
-
-\-
-
-\-
-
-\-
-
-\-
-
-\-
-
-\-
-
-```{r}
-#clima <- 
-  #clima |> 
-  #mutate(suma = muy_bajo + bajo + medio + alto + muy_alto ,
-  #       prop = (muy_bajo + bajo ) / suma ) |> 
-  #select(codigo, prop)
-
-clima <- 
-  clima %>%
-  mutate(
-    total_hogares = muy_bajo + bajo + medio + alto + muy_alto,
-    promedio_eduhog = (
-      1 * muy_bajo +
-      2 * bajo +
-      3 * medio +
-      4 * alto +
-      5 * muy_alto
-    ) / total_hogares
-  )
-
-head(clima)
-```
-
-Uno los datasets
-
-```{r}
-#| eval: false
-#| message: true
-#| warning: true
-
-left_join(lp,
-          clima,
-          by = c('cod_2022' = 'codigo') )
-
-
-```
-
-Tienen formato distitno
-
-```{r}
-lp <- 
-  lp |> 
-  mutate(codigo = as.double(cod_2022 )) |> 
-  left_join(clima, by = 'codigo')
-head(lp)
-```
-
-```{r}
-ggplot() +
-  geom_sf(data = lp, aes(fill = promedio_eduhog)) +
-  theme_minimal() +
-  labs(title = "Clima educativo - La Plata")
-
-```
-
-```{r}
-lp <- st_transform(lp,4326)
-
-grafico_clima <-
-  ggplot() +
-  geom_sf(
-    data = lp, 
-    aes(fill = promedio_eduhog ), 
-    color = NA,  # Elimina bordes para mejor visualización
-    size = 0  # Grosor cero para los bordes
-  ) +
-  scale_fill_gradient(
-    low = "#FFCCCB",  
-    high = "#8B0000", 
-    name = "Promedio del clima educativo del hogar") +
-  theme_minimal() +
-  labs(
-    title = "Clima educativo - La Plata",
-    subtitle = "Radios con menor clima educativo en rojo intenso",
-    caption = "Fuente: Elaboración propia en base a INDEC 2022"
-  ) +
-  theme(
-    plot.title = element_text(face = "bold", hjust = 0.5, size = 16),
-    plot.subtitle = element_text(hjust = 0.5, color = "gray30"),
-    legend.position = "right",
-    legend.title = element_text(face = "bold", size = 10)
-  )
-
-grafico_clima+
-    annotation_map_tile(alpha = 0.2)
-
-```
+## Índice sintético de accesibilidad y clima educativo
 
 Genero un indice sintetico que combine el promedio de la distancia normalizada (0 a 1) y el porcentaje de hogares con clima educativo bajo
 
@@ -668,6 +447,20 @@ grafico_indice <-
       annotation_map_tile(data = lp, alpha = 0.3)
 ```
 
+```{r}
+st_crs(lp)  # debería ser 4326
+
+# Paso 2: Reproyectar a EPSG:3857 (Google Web Mercator, necesario para tiles)
+lp_3857 <- st_transform(lp, 3857)
+
+library(maptiles)
+# Paso 3: Obtener fondo satelital (tile) desde Esri
+bg <- get_tiles(lp_3857, provider = "Esri.WorldImagery", crop = TRUE)
+
+grafico_clima+
+layer_spatial(bg, alpha = 0.3) 
+```
+
 descargar y probar con otros datasets: salud, datos abiertos pba.
 
 universidad..avisos inmobiliarios; ver ideba
@@ -689,12 +482,12 @@ tp3
 promedio de distancia manhattan de 4 puntos elegidos al azar dentro del radio
 
 ```{r}
-library(mapboxapi)
+#library(mapboxapi)
 
 #install.packages('tidygeocoder')
 #library(tidygeocoder)
 #install.packages('osrm')
-library(osrm)
+#library(osrm)
 
 
 
