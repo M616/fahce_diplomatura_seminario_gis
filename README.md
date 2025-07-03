@@ -1,5 +1,7 @@
-# Sistemas de información geográfica. Diplomatura en Ciencia de Datos - FAHCE (2025).
+# Sistemas de Información Geográfica  
+**Diplomatura en Ciencia de Datos - FAHCE (2025)**
 
+Este espacio de trabajo corresponde a la materia **Sistemas de Información Geográfica**, enmarcada en la **[Diplomatura en Ciencia de Datos](https://cienciadedatos.fahce.unlp.edu.ar)** de la **Facultad de Humanidades y Ciencias de la Educación (FaHCE) de la Universidad Nacional de La Plata (UNLP)**.
 
 ## Trabajos Prácticos
 - [Introducción](trabajos_practicos/introduccion/)
