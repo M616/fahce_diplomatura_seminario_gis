@@ -46,6 +46,7 @@ library(sf)          # Datos espaciales
 library(mapview)     # Mapas interactivos  
 library(here)        # Para manejar el path
 library(janitor)     # Para limpieza de datos
+library(ggspatial)   # Para insertar rosa de los vientos y barra de                         escala en los mapas
 ```
 
 En los Sistemas de Información Geográfica (SIG), los datos vectoriales se utilizan para representar entidades geográficas mediante tres tipos básicos de geometrías:
@@ -248,7 +249,7 @@ renabap <-
   st_read(here("data/raw/renabap/renabap-datos-barrios-gpkg"))
 ```
 
-#### Visualización interactiva con `mapview()`
+## Visualización interactiva con `mapview()`
 
 La función `mapview()` permite explorar datos espaciales de forma rápida e interactiva. A continuación se muestran algunos ejemplos con las capas cargadas:
 
@@ -512,9 +513,42 @@ salud_intersection %>% glimpse()
   filter(id_renabap == 57) 
 ```
 
+### Fusion de geometrías con `st_union()`
+
+La función `st_union()` permite **fusionar geometrías** en una sola, disolviendo los límites entre elementos. Se utiliza, por ejemplo, para unir todos los buffers en una única área de cobertura.\
+No conserva atributos individuales, pero puede combinarse con `group_by()` y `summarise()` si se desea agrupar por una variable antes de la unión.
+
 ### Excluir áreas superpuestas: `st_difference()`
 
 La función `st_difference()` devuelve las partes de una geometría que **no se superponen** con otra. Es útil para identificar áreas **excluidas** por una capa, como las zonas de un barrio que **no** están cubiertas por un buffer de salud.\
+
+::: callout-warning
+# Advertencia al usar st_difference()
+
+`st_difference(x, y)` calcula la parte de `x` que **no se superpone con** `y`. Si `y` tiene **múltiples geometrías**, la diferencia se aplica con **cada geometría por separado**, lo cual puede:
+
+```         
+-   Generar **resultados inesperados**, como duplicaciones o geometrías partidas.
+-   Aumentar la cantidad de filas del resultado.
+-   Complicar la interpretación espacial.
+```
+
+Es recomendable **fusionar previamente** las geometrías de `y` con `st_union()`, para que la diferencia se calcule respecto de una única geometría combinada.
+:::
+
+```{r}
+renabap_lp <- 
+  renabap %>% 
+  filter(departamento == 'La Plata') 
+
+salud_lp <-
+  salud_buffer %>% 
+  filter(nde == 'LA PLATA') %>% 
+  st_union() %>% 
+  st_as_sf()
+
+resultado <- st_difference(renabap_lp, salud_lp)
+```
 
 ```{r}
 #| eval: false
@@ -526,18 +560,14 @@ st_difference(salud_buffer)
 
 A diferencia de `st_intersection()`, no conserva atributos de la segunda capa, y las geometrías resultantes pertenecen solo a la primera.
 
-### Fusion de geometrías con `st_union()`
-
-La función `st_union()` permite **fusionar geometrías** en una sola, disolviendo los límites entre elementos. Se utiliza, por ejemplo, para unir todos los buffers en una única área de cobertura.\
-No conserva atributos individuales, pero puede combinarse con `group_by()` y `summarise()` si se desea agrupar por una variable antes de la unión.
-
 La función `st_centroid()` calcula el **centro geométrico** de cada objeto espacial. Es útil para representar áreas con un punto, por ejemplo, al ubicar etiquetas o simplificar visualizaciones.
 
 La función `st_distance()` calcula la **distancia** entre geometrías. Puede aplicarse entre puntos, líneas o polígonos, y devuelve una matriz de distancias por defecto. Si se desea conocer la distancia mínima entre dos capas, se puede usar con índices.
 
 La función `st_area()` calcula el **área** de geometrías tipo polígono. Devuelve un valor numérico en las unidades del sistema de referencia (por ejemplo, metros cuadrados si está en proyección métrica).
 
-::: callout-note
+::: callout-tip
+#### Unión previa antes de la diferencia espacial
 Los procesos de geoprocesamiento que se presentaron no son exclusivos de R ni del paquete `sf`, sino que forman parte del conjunto de herramientas fundamentales en cualquier Sistema de Información Geográfica (GIS). Estas operaciones son compartidas y utilizadas en otros lenguajes como Python (con librerías como `geopandas` y `shapely`) o en software de escritorio como QGIS o ArcGIS. La lógica subyacente es común a todos los entornos.
 :::
 
