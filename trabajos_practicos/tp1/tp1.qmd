@@ -228,9 +228,6 @@ radios <-
 plot(radios[1,1])
 ```
 
-::: callout-warning
-Al trabajar con las geometrías del censo recordá que en la mayoría de las provincias no hay correspondencia entre los gobiernos locales (Municipios) y los departamentos (partidos en PBA, comunas en CABA). Ver (INDEC, 1999), (Vapñarsky, 2004). Podés descargar los metadatos del censo (inluídas las unidades geoestadísticas y los códigos desde [acá](https://www.indec.gob.ar/ftp/cuadros/poblacion/metadatos_censo2022_redatam.zip)).
-:::
 
 **Capa:** Barrios populares (RENABAP)
 
