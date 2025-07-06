@@ -1,0 +1,131 @@
+---
+title: "Sistemas de información geográfica. TP2: Geoprocesos con datos vectoriales (continuación)."
+author: Marcos May
+email: mmmay@fahce.unlp.edu.ar
+format:
+  pdf:
+    toc: true
+    toc-title: Indice
+    number-sections: false
+    toc-depth: 3
+editor_options: 
+  chunk_output_type: inline
+---
+
+## Objetivos
+
+Este trabajo se propone introducir herramientas de análisis geoespacial con R aplicadas a una problemática educativa territorial: **la accesibilidad a escuelas secundarias** y las condiciones socioeducativas del entorno.
+
+El ejercicio se desarrolla en el partido de **La Plata**, y se trabajará exclusivamente con **datos geográficos vectoriales**, es decir, información representada como **puntos** (escuelas) y **polígonos** (radios censales), incorporando atributos provenientes del **Censo 2022**.
+
+------------------------------------------------------------------------
+
+#### Objetivo general
+
+Aprender a **manipular datos geográficos vectoriales en R**, integrando información territorial con variables sociodemográficas para el análisis de problemáticas sociales.
+
+#### Objetivos específicos
+
+-   Comprender el formato y la estructura de los **datos vectoriales** en R (capas de puntos y polígonos).
+-   Incorporar y vincular información **censal georreferenciada**, combinando geometría espacial con atributos estadísticos.
+-   Medir la **distancia desde cada radio censal** a la escuela secundaria más cercana, como estimación de accesibilidad territorial.
+-   Incorporar el **clima educativo del hogar** como variable contextual proveniente de REDATAM / INDEC.
+-   Visualizar **desigualdades territoriales** mediante mapas temáticos.
+-   Construir un **índice exploratorio** que combine accesibilidad y condiciones educativas como insumo para el análisis descriptivo.
+
+```{r setup, warning=FALSE, echo=FALSE, message=FALSE}
+library(tidyverse)   # Manipulación de datos  
+library(sf)          # Datos espaciales  
+library(mapview)     # Mapas interactivos  
+library(units)       # Manejo de distancias (metros/km)  
+library(nngeo)       # Para cálculos de distancia más cercana  
+library(here)        # Para manejar el path
+library(janitor)     # Para limpieza de datos
+library(ggspatial)
+library(maptiles)
+library(prettymapr)
+library(readxl)
+```
+
+```{r}
+rm(list = ls())
+load(here('data/processed/lp.Rda'))
+load(here('data/processed/secundarias_lp.Rda'))
+```
+
+```{r}
+nbi <- 
+  read_excel(here("data/processed/redatam_censo/la_plata_nbi_radio.xlsX"),
+             skip = 11,
+             n_max = 1048) |> 
+  rename(con_nbi = Sí) |> select(Código,con_nbi)
+```
+
+```{r}
+lp <- left_join(lp,
+                nbi,
+                by = c('codigo' = 'Código'))
+```
+
+
+```{r}
+buffer <- secu |> st_buffer(dist = 500)
+```
+
+```{r}
+lp_intersection <- st_intersection (buffer,lp)
+```
+```{r}
+lp$area <- as.numeric(st_area(lp))
+```
+
+```{r}
+lp_intersection <- 
+  st_intersection (lp,buffer)
+
+```
+```{r}
+lp_intersection$area_i <- as.numeric(st_area(lp_intersection))
+```
+
+```{r}
+lp_intersection <- 
+  lp_intersection |> 
+  mutate(prop_interseccion = area_i / area )
+
+```
+
+
+```{r}
+summary(lp_intersection$prop_interseccion)
+```
+
+```{r}
+mapview(lp_intersection, zcol = 'prop_interseccion')
+```
+
+```{r}
+library(classInt)
+
+breaks_jenks <- classInt::classIntervals(lp_intersection$prop_interseccion,
+                                         n = 5, style = "jenks")
+cortes <- breaks_jenks$brks
+
+mapview(lp_intersection,
+        zcol = "prop_interseccion",
+        at = cortes,
+        layer.name = "Proporción de intersección",
+        legend = TRUE)
+
+```
+
+```{r}
+ mapview(lp_intersection,
++         zcol = "prop_interseccion",
++         at = c(0, 0.30, 1),
++         layer.name = "Proporción de intersección",
++         legend = TRUE)
+
+
+```
+

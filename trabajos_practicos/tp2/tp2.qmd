@@ -405,7 +405,22 @@ ggplot() +
 
 ## Índice sintético de accesibilidad y clima educativo
 
-Genero un indice sintetico que combine el promedio de la distancia normalizada (0 a 1) y el porcentaje de hogares con clima educativo bajo
+Genero un índice sintético que combine el promedio de la distancia normalizada (0 a 1) y el porcentaje de hogares con clima educativo bajo.
+
+
+```{r}
+poblacion <- 
+  read_excel(here("data/processed/redatam_censo/lp_edad_grandes_grupos.xlsX"),
+             skip = 11,
+             n_max = 1048)
+```
+```{r}
+lp <- 
+  lp |> 
+  left_join(poblacion[,c('Total','Código')],
+            by = c('codigo' = 'Código'))
+```
+
 
 ```{r}
 library(scales)
@@ -413,8 +428,17 @@ library(scales)
 lp$dist_norm <- rescale(-lp$dist_sec)
 lp$prom_norm <- rescale(lp$promedio_eduhog )
 
-lp$indice <-  (lp$dist_norm + lp$prom_norm ) / 2
+lp$indice <-  lp$dist_norm * 0.5 + lp$prom_norm *0.5
+
 ```
+
+```{r}
+save(lp, file = here('data/processed/lp.Rda'))
+save(secu, file = here('data/processed/secundarias_lp.Rda'))
+
+```
+
+
 
 ```{r}
 grafico_indice <- 

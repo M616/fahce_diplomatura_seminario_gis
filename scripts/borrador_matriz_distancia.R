@@ -1,3 +1,5 @@
+
+
 matriz <- st_distance(centroides,secu)
 colnames(matriz) <- secu$clave
 rownames(matriz) <- centroides$cod_2022
