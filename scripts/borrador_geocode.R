@@ -154,3 +154,65 @@ lp <- st_drop_geometry(lp_goog) %>%
 distancias <- lp_coords |> 
   inner_join(lp_goog_coords, by = "listing_id") |> 
   mutate(distancia_m = st_distance(geom_lp, geom_goog, by_element = TRUE))
+
+
+################georref
+################
+################library(readr )
+library(tidyverse)
+library(geoAr)
+library(here)
+
+muestra <- read_csv(here('data/raw/ovs/lp_muestra_inmuebles.csv'))
+
+
+
+p <- geoAr::normalizar_direccion(direccion = 'calle 522 n 753',
+                                 provincia = 'bs as',
+                                 departamento = 'la plata',
+                                 max = 1
+)
+
+p <- geoAr::normalizar_direccion(direccion = muestra$address[10],
+                                 provincia = muestra$prov[10],
+                                 departamento = muestra$district[10],
+                                 max = 1
+)
+
+
+muestra$prov <- 'Buenos Aires'
+
+muestra <- muestra |> filter(!is.na(address))
+tmp <- list()
+
+for (i in seq_len(nrow(muestra))) {
+  
+  res <- geoAr::normalizar_direccion(
+    direccion = muestra$address[i],
+    provincia = muestra$prov[i],
+    departamento = muestra$district[i],
+    max = 1
+  )
+  
+  # Guardar resultado vacío si no hay respuesta
+  if (length(res) == 0) {
+    tmp[[i]] <- tibble(
+      listing_id = muestra$listing_id[i],
+      ubicacion_lat = NA,
+      ubicacion_lon = NA
+    )
+  } else {
+    # Tomar solo el primer resultado
+    tmp[[i]] <- tibble(
+      listing_id = muestra$listing_id[i],
+      ubicacion_lat = res$ubicacion_lat,
+      ubicacion_lon = res$ubicacion_lon
+    )
+  }
+  
+  # Asignar nombre al elemento
+  names(tmp)[i] <- muestra$listing_id[i]
+}
+
+
+dplyr::bind_rows(tmp)
