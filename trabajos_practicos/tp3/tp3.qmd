@@ -129,3 +129,6 @@ mapview(lp_intersection,
 
 ```
 
+
+
+una api es una interfaz que permite el intercambio de datos entre sistemas informpáticos: el servidor te da datos específicos sin tener toda la base
