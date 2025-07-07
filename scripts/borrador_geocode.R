@@ -163,7 +163,7 @@ library(tidyverse)
 library(geoAr)
 library(here)
 
-muestra <- read_csv(here('data/raw/ovs/lp_muestra_inmuebles.csv'))
+muestra <- read_csv(here('data/processed/ovs/lp_muestra_inmuebles.csv'))
 
 
 
