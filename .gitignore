@@ -13,4 +13,4 @@ data/*
 data/processed/*
 !data/processed/redatam_censo/
 !data/processed/ovs/
-renv/
+renv/library/
