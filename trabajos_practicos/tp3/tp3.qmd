@@ -20,18 +20,15 @@ El ejercicio se desarrolla en el partido de **La Plata**, y se trabajará exclus
 
 ------------------------------------------------------------------------
 
-#### Objetivo general
+intro
+tp1: geoprocesos presentacion
+tp2: indice de accesibilidad
 
-Aprender a **manipular datos geográficos vectoriales en R**, integrando información territorial con variables sociodemográficas para el análisis de problemáticas sociales.
+tp3: matriz de distancia, buffer de distancia fija, intersection,st_area, st_union
 
-#### Objetivos específicos
+tp4: uso de apis: mapbox (uso de distancia manhatann, isocronas); georref; osmdata();
 
--   Comprender el formato y la estructura de los **datos vectoriales** en R (capas de puntos y polígonos).
--   Incorporar y vincular información **censal georreferenciada**, combinando geometría espacial con atributos estadísticos.
--   Medir la **distancia desde cada radio censal** a la escuela secundaria más cercana, como estimación de accesibilidad territorial.
--   Incorporar el **clima educativo del hogar** como variable contextual proveniente de REDATAM / INDEC.
--   Visualizar **desigualdades territoriales** mediante mapas temáticos.
--   Construir un **índice exploratorio** que combine accesibilidad y condiciones educativas como insumo para el análisis descriptivo.
+tp5: imagenes raster: carga; visualizacvion; principios basicos; extract; ejemplo: volumen construído
 
 ```{r setup, warning=FALSE, echo=FALSE, message=FALSE}
 library(tidyverse)   # Manipulación de datos  
@@ -47,18 +44,26 @@ library(prettymapr)
 library(readxl)
 ```
 
+
 ```{r}
 rm(list = ls())
 load(here('data/processed/lp.Rda'))
-load(here('data/processed/secundarias_lp.Rda'))
+#load(here('data/processed/secundarias_lp.Rda'))
 ```
+
+```{r}
+salud <- st_read(here('data/processed/salud/centros_de_salud.gpkg'))
+```
+Cargamos el excel que descargamos de INDEC con la cantidad de hogares con algún porcentaje de nbi en los radios de La Plata
 
 ```{r}
 nbi <- 
   read_excel(here("data/processed/redatam_censo/la_plata_nbi_radio.xlsX"),
              skip = 11,
              n_max = 1048) |> 
-  rename(con_nbi = Sí) |> select(Código,con_nbi)
+  rename(con_nbi = Sí,
+         sin_nbi = No) |> 
+  select(Código, con_nbi)
 ```
 
 ```{r}
@@ -69,12 +74,59 @@ lp <- left_join(lp,
 
 
 ```{r}
-buffer <- secu |> st_buffer(dist = 500)
+glimpse(salud)
 ```
+
+
+```{r}
+salud <-  st_transform(salud, st_crs(lp))
+salud <- st_filter(salud,lp)
+
+
+```
+
+
+los caps son las salitas municipales, quiero ver esos
+
+```{r}
+salitas <- salud |> filter(tes == 'Municipal')
+```
+
+
+```{r}
+buffer <- salitas |> st_buffer(dist = 500)
+```
+
+Hago un join espacial, teniendo en cuenta la diferencia entre st_join() y st_intersection()
+
+```{r}
+lp_join <- st_join(buffer,
+                   lp,
+                   join = st_intersects)
+```
+
+```{r}
+
+lp_join_ <- 
+  lp_join |> 
+  group_by(id ) |> 
+  #summarise(nbi = sum(con_nbi) / sum(total_hogares), do_union = TRUE)
+  summarise(nbi = sum(con_nbi) / sum(total_hogares), .groups = 'drop')
+
+
+
+```
+
+
+
+
+
 
 ```{r}
 lp_intersection <- st_intersection (buffer,lp)
 ```
+
+
 ```{r}
 lp$area <- as.numeric(st_area(lp))
 ```
@@ -121,14 +173,15 @@ mapview(lp_intersection,
 
 ```{r}
  mapview(lp_intersection,
-+         zcol = "prop_interseccion",
-+         at = c(0, 0.30, 1),
-+         layer.name = "Proporción de intersección",
-+         legend = TRUE)
+         zcol = "prop_interseccion",
+         at = c(0, 0.30, 1),
+         layer.name = "Proporción de intersección",
+         legend = TRUE)
 
 
 ```
 
+2
 
 
 una api es una interfaz que permite el intercambio de datos entre sistemas informpáticos: el servidor te da datos específicos sin tener toda la base

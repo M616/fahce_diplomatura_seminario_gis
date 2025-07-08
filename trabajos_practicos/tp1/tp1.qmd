@@ -98,6 +98,20 @@ salud_sf <-
            crs = 4326)
 ```
 
+Exportamos el archivo en formato gpkg:
+
+```{r}
+dir.create(here('data/processed/salud'))
+
+st_write(salud_sf,
+         here('data/processed/salud/centros_de_salud.gpkg'),
+         append = FALSE)
+```
+
+
+
+
+
 #### Visualización rápida con `plot()` (R base)
 
 Una forma simple y directa de visualizar datos espaciales es utilizando la función `plot()` de R base, que es compatible con objetos `sf`. Esta función permite generar mapas estáticos sin necesidad de cargar paquetes adicionales de visualización.
