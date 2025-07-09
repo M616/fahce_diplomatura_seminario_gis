@@ -106,17 +106,15 @@ lp_join <- st_join(buffer,
 ```
 
 ```{r}
-
 lp_join_ <- 
   lp_join |> 
-  group_by(id ) |> 
-  #summarise(nbi = sum(con_nbi) / sum(total_hogares), do_union = TRUE)
+  group_by(id) |> 
   summarise(nbi = sum(con_nbi) / sum(total_hogares), .groups = 'drop')
-
-
-
 ```
 
+```{r}
+
+```
 
 
 
@@ -144,29 +142,38 @@ lp_intersection$area_i <- as.numeric(st_area(lp_intersection))
 lp_intersection <- 
   lp_intersection |> 
   mutate(prop_interseccion = area_i / area )
-
 ```
 
 
 ```{r}
 summary(lp_intersection$prop_interseccion)
+lp_intersection$area_km2 = factor( lp_intersection$area / 1000000)
+
 ```
 
 ```{r}
-mapview(lp_intersection, zcol = 'prop_interseccion')
+mapview(lp_intersection, 
+        zcol = 'prop_interseccion',
+        label = 'area_km2')
 ```
+mapa coroplético
+en mapview controlo color.region y quiebres con at. el valor central es el quiebre, mapa binario
 
 ```{r}
 library(classInt)
 
 breaks_jenks <- classInt::classIntervals(lp_intersection$prop_interseccion,
-                                         n = 5, style = "jenks")
+                                         n = 5, 
+                                         style = "jenks")
 cortes <- breaks_jenks$brks
+
+colores <- colorRampPalette(colors = c("white", "red"))
 
 mapview(lp_intersection,
         zcol = "prop_interseccion",
-        at = cortes,
         layer.name = "Proporción de intersección",
+        col.regions = colores,
+        at = c(0, 0.33, 1), 
         legend = TRUE)
 
 ```
@@ -177,9 +184,46 @@ mapview(lp_intersection,
          at = c(0, 0.30, 1),
          layer.name = "Proporción de intersección",
          legend = TRUE)
+```
+ 
+Lor sadios en blanco serán descarods.
 
+
+```{r}
+lp_intersection <- 
+  lp_intersection |> filter(prop_interseccion > 0.333)
+```
+
+
+controlo con do_union dentro de summarise para fusionar o no las geometrías agrupadas
+```{r}
+salitas <- 
+  lp_intersection |> 
+  group_by(id) |> 
+  summarise(nbi_per = sum(con_nbi) / sum(total_hogares),
+            .groups = 'drop',  
+            do_union = TRUE) |>  #poner FALSE para mantener separadas las geometrias 
+  st_drop_geometry() |> 
+  right_join(salitas)
 
 ```
+
+```{r}
+p <- lp_intersection |> 
+  group_by(id) |> 
+  mutate(nbi_per = sum(con_nbi) / sum(total_hogares)) |> 
+  ungroup() |> 
+  st_drop_geometry() |> 
+  select(id,area_km2, prop_interseccion) |> arrange(desc(area_km2))
+
+
+  
+```
+
+
+
+
+
 
 2
 
