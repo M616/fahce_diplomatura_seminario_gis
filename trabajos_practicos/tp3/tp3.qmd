@@ -229,3 +229,83 @@ p <- lp_intersection |>
 
 
 una api es una interfaz que permite el intercambio de datos entre sistemas informpáticos: el servidor te da datos específicos sin tener toda la base
+
+1. Mapbox API: cálculo de isócronas con mapboxapi
+
+Mapbox es una plataforma de cartografía basada en la nube. Su API de isócronas permite calcular áreas que pueden alcanzarse desde un punto dado en un tiempo determinado, según el modo de transporte (a pie, en auto, en bicicleta).
+
+Este tipo de análisis es útil para evaluar, por ejemplo:
+
+    Accesibilidad a escuelas o centros de salud,
+
+    Desigualdad territorial en el acceso a servicios,
+
+    Tiempo de viaje desde distintos puntos de una ciudad.
+
+En R, usaremos la librería mapboxapi, que permite conectarse fácilmente con los servicios de Mapbox. Un ejemplo de uso básico:
+
+library(mapboxapi)
+
+# Configurar tu token de Mapbox
+mb_access_token(Sys.getenv("MAPBOX_TOKEN"))
+
+# Calcular una isócrona de 10 minutos caminando
+iso <- mb_isochrone(
+  location = c(-58.4173, -34.6118),  # Ejemplo: Congreso, CABA
+  profile = "walking",
+  minutes = 10
+)
+
+# Visualizar con leaflet
+library(leaflet)
+leaflet() %>%
+  addTiles() %>%
+  addPolygons(data = iso, fillColor = "blue", fillOpacity = 0.4)
+
+2. OpenStreetMap: extracción de datos urbanos con osmdata
+
+OpenStreetMap (OSM) es una base de datos cartográfica colaborativa y abierta, muy utilizada en investigación social. La API de OSM permite obtener datos detallados sobre el espacio urbano: calles, escuelas, hospitales, transporte, espacios verdes, etc.
+
+En R, la librería osmdata permite escribir consultas a la API Overpass de forma intuitiva. Ejemplo: extraer escuelas en un barrio de Buenos Aires.
+
+library(osmdata)
+
+q <- opq("Villa Lugano, Buenos Aires") %>%
+  add_osm_feature(key = "amenity", value = "school")
+
+escuelas <- osmdata_sf(q)
+
+# Visualización rápida
+library(sf)
+plot(escuelas$osm_points["name"])
+
+Este enfoque es muy útil para construir indicadores territoriales, mapear infraestructura urbana o cruzar datos con encuestas sociales.
+3. Geocodificación con geoAr: direcciones a coordenadas
+
+Cuando trabajamos con bases de datos que contienen direcciones postales (como encuestas o padrones), necesitamos convertir esas direcciones en coordenadas geográficas para poder mapearlas o analizarlas espacialmente. Ese proceso se llama geocodificación.
+
+La librería geoAr conecta con la API pública GGeorref, desarrollada por el Ministerio de Ciencia, Tecnología e Innovación de Argentina, para geocodificar direcciones, localidades y calles en territorio argentino.
+
+Ejemplo básico:
+
+library(geoAr)
+
+# Geocodificar una dirección en CABA
+geo <- geocode("Av. Rivadavia 3000, CABA")
+
+geo
+
+La salida incluye latitud y longitud, y se puede convertir fácilmente en un objeto sf para su análisis espacial.
+Conclusión
+
+Las APIs geoespaciales permiten trabajar con información territorial de forma dinámica y precisa, directamente desde R. Nos abren un abanico de posibilidades para estudiar fenómenos sociales con una dimensión espacial: desde el acceso a la educación, la salud o el transporte, hasta la planificación urbana y la visualización de desigualdades territoriales.
+
+El uso combinado de mapboxapi, osmdata y geoAr nos permite:
+
+    Obtener datos de infraestructura urbana,
+
+    Geocodificar direcciones de nuestras bases,
+
+    Medir accesibilidad territorial mediante isócronas.
+
+Durante el seminario, aplicaremos estas herramientas en casos concretos para que puedan integrarlas en sus propios proyectos de investigación.
