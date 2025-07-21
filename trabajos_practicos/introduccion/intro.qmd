@@ -65,7 +65,7 @@ de datos como `dplyr` o `ggplot2`.
 Muenchow, J. (2024). Geocomputation with
 R.](images/intro_vectores.png){fig-align="center"}](https://geocompr.robinlovelace.net/)
 
-#### Datos RASTERs
+#### Datos raster
 
 Por otro lado, los datos raster representan el espacio como una grilla
 de celdas, también llamadas píxeles, donde cada celda contiene un valor
@@ -87,7 +87,7 @@ flexible y eficiente, integrando herramientas para análisis espacial,
 reproyección, cálculos sobre celdas, y visualización.
 
 [![Fuente: OVS](images/intro_raster.jpg){fig-align="center"
-width="1150"}](https://observatoriosuelo.gba.gob.ar/)
+width="500"}](https://observatoriosuelo.gba.gob.ar/)
 
 Tanto los datos vectoriales como los raster están referidos a
 ubicaciones concretas sobre la superficie terrestre, pero para que esta
