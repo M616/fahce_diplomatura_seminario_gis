@@ -81,8 +81,6 @@ glimpse(salud)
 ```{r}
 salud <-  st_transform(salud, st_crs(lp))
 salud <- st_filter(salud,lp)
-
-
 ```
 
 
@@ -112,13 +110,6 @@ lp_join_ <-
   summarise(nbi = sum(con_nbi) / sum(total_hogares), .groups = 'drop')
 ```
 
-```{r}
-
-```
-
-
-
-
 
 ```{r}
 lp_intersection <- st_intersection (buffer,lp)
@@ -134,6 +125,7 @@ lp_intersection <-
   st_intersection (lp,buffer)
 
 ```
+
 ```{r}
 lp_intersection$area_i <- as.numeric(st_area(lp_intersection))
 ```
@@ -186,7 +178,7 @@ mapview(lp_intersection,
          legend = TRUE)
 ```
  
-Lor sadios en blanco serán descarods.
+Los radios en blanco serán descartados.
 
 
 ```{r}
@@ -215,22 +207,39 @@ p <- lp_intersection |>
   ungroup() |> 
   st_drop_geometry() |> 
   select(id,area_km2, prop_interseccion) |> arrange(desc(area_km2))
-
-
-  
 ```
 
 
+2 voronoi?
 
+```{r}
+lp_u <- st_union(lp)
 
+salitas_u <- st_union(salitas)  
+  
+p <- st_voronoi(x=salitas_u, envelope =  lp_u )|> 
+  st_collection_extract()
 
+p <- st_intersection(p,lp_u) |> st_as_sf()
 
-2
+mapview(p)+salitas
+```
 
+```{r}
+voronoi_sf <- st_collection_extract(voronoi_geom) %>%
+  st_sf(geometry = .) %>%
+  st_set_crs(st_crs(salitas))
+```
 
-una api es una interfaz que permite el intercambio de datos entre sistemas informpáticos: el servidor te da datos específicos sin tener toda la base
+```{r}
+mapview(voronoi_sf)
+```
+
+una api es una interfaz que permite el intercambio de datos entre sistemas informáticos: el servidor te da datos específicos sin tener toda la base
 
 1. Mapbox API: cálculo de isócronas con mapboxapi
+
+https://docs.mapbox.com/api/navigation/isochrone/
 
 Mapbox es una plataforma de cartografía basada en la nube. Su API de isócronas permite calcular áreas que pueden alcanzarse desde un punto dado en un tiempo determinado, según el modo de transporte (a pie, en auto, en bicicleta).
 

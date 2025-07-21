@@ -1,101 +1,172 @@
 ---
-title: "Sistemas de información geográfica"
+title: 'Sistemas de información geográfica. Introducción'
+author: 'Marcos May'
 format:
   pdf:
-    toc: true
-    toc-title: Indice
+    toc: false
     number-sections: false
+    header-includes:
+      - \titlehead{\flushright\includegraphics[width=0.4\textwidth]{../../images/Logo-fahce-unlp-negro.png}}
 editor_options: 
   chunk_output_type: inline
+editor: 
+  markdown: 
+    wrap: 72
 ---
 
-# Actividad práctica 1
+*“Todo está relacionado con todo, pero las cosas más cercanas están más
+relacionadas que las cosas lejanas.”* Tobler, W. (1970).
 
-### **Temas**
+\vspace{2em}
 
-introduccion: geoide, tipo de coordenadas, CRS
+Un **Sistema de Información Geográfica (GIS)** es una herramienta que
+permite **almacenar, analizar y visualizar datos georreferenciados**, es
+decir, datos que tienen una **ubicación específica en la superficie
+terrestre**. A diferencia de un dataframe tradicional —que organiza
+información en filas y columnas—, un GIS incorpora una **dimensión
+espacial**, lo que permite relacionar los datos con un lugar concreto
+del planeta.
 
-Gis: datos vectoriales y datos raster. tipos de archivos
--   Tipo de geometrías
--   Descarga de polígonos de radios censales 2022 y establecimientos educativos (DGCyE),
--   Calcular el centroide de un polígono
--   Cambiar el CRS de un objeto,
--   Calcular distancia euclideana entre 2 puntos
--   Exportar archivos en formato gpkg
+Por ejemplo, mientras un dataframe clásico podría listar ciudades con
+sus nombres y poblaciones, en un GIS cada ciudad estaría representada
+además con su **forma y posición geográfica** (como un punto, polígono o
+línea). Esto hace posible realizar análisis espaciales, como medir
+distancias, superponer capas temáticas o detectar patrones geográficos.
 
 ## Representación de datos espaciales
 
-En los Sistemas de Información Geográfica (SIG), los datos geográficos pueden representarse de diferentes formas según su naturaleza:
+En los Sistemas de Información Geográfica los datos espaciales pueden
+representarse de dos formas principales: **vectores** y **rasters**.
+Cada tipo tiene propiedades distintas que los hacen más adecuados para
+ciertos tipos de análisis y fenómenos, especialmente en el campo de las
+ciencias sociales.
 
--   **Puntos**, como la ubicación de escuelas o domicilios.
--   **Líneas**, como rutas o ríos.
--   **Polígonos**, como barrios, radios censales, provincias o áreas de cobertura.
--   **Celdas raster**, como imágenes satelitales o mapas de temperatura.
+#### Datos vectoriales
 
-Cada uno de estos objetos puede tener atributos asociados (por ejemplo, nombre, superficie, población) y una **ubicación espacial** referida a la Tierra.
+Representan objetos geográficos definidos con precisión, usando
+geometrías como:
+
+**Puntos**: por ejemplo, la ubicación de escuelas, semáforos o
+domicilios.
+
+**Líneas**: como rutas, ríos o redes eléctricas.
+
+**Polígonos**: como manzanas, barrios, radios censales, provincias o
+áreas de cobertura.
+
+Este tipo de representación es particularmente útil cuando se trabaja
+con unidades administrativas, instituciones, redes urbanas o cualquier
+entidad que tenga una forma y límites precisos. En el análisis espacial
+en R, los vectores se gestionan comúnmente con el paquete `sf`, que
+permite integrar operaciones espaciales con herramientas de manipulación
+de datos como `dplyr` o `ggplot2`.
+
+[![Representación vectorial. Fuente: Lovelace, R., Nowosad, J., y
+Muenchow, J. (2024). Geocomputation with
+R.](images/intro_vectores.png){fig-align="center"}](https://geocompr.robinlovelace.net/)
+
+#### Datos RASTERs
+
+Por otro lado, los datos raster representan el espacio como una grilla
+de celdas, también llamadas píxeles, donde cada celda contiene un valor
+que puede representar variables continuas o categóricas. Esta estructura
+es ideal para representar fenómenos que varían de manera continua en el
+territorio, como la densidad poblacional, el nivel de contaminación, la
+temperatura, o incluso el uso del suelo registrado mediante imágenes
+satelitales.
+
+Una característica clave de los rasters es la **resolución espacial**,
+que indica el tamaño de cada celda: una resolución alta (celdas
+pequeñas) permite capturar más detalle, mientras que una resolución baja
+(celdas grandes) simplifica la información. Aunque suelen considerarse
+más "pesados", los rasters pueden ser muy eficientes para ciertos tipos
+de análisis, especialmente cuando se requiere modelar transiciones
+suaves o procesar grandes volúmenes de datos espaciales. En R, el
+paquete `terra` permite leer, procesar y analizar datos raster de manera
+flexible y eficiente, integrando herramientas para análisis espacial,
+reproyección, cálculos sobre celdas, y visualización.
+
+[![Fuente: OVS](images/intro_raster.jpg){fig-align="center"
+width="1150"}](https://observatoriosuelo.gba.gob.ar/)
+
+Tanto los datos vectoriales como los raster están referidos a
+ubicaciones concretas sobre la superficie terrestre, pero para que esta
+ubicación tenga sentido dentro de un GIS, es necesario que esté definida
+en un sistema de coordenadas. Sin un sistema de referencia espacial
+común no sería posible superponer capas, calcular distancias reales o
+relacionar información proveniente de distintas fuentes.
 
 ## Proyecciones cartográficas
 
-Al representar la Tierra en un plano, inevitablemente se introduce **distorsión**. Las proyecciones pueden deformar:
+Al representar la Tierra en un plano, inevitablemente se introduce
+**distorsión**. Las proyecciones pueden deformar:
 
 -   Las **formas**
 -   Las **superficies**
 -   Las **distancias**
 -   Los **ángulos**
 
-Cada proyección intenta minimizar alguno de estos aspectos, pero **ninguna puede conservarlos todos a la vez**. Por eso es clave elegir la proyección adecuada según el objetivo del análisis.
+![Distorsión de área. Fuente:
+thetruesize.com](images/distorsion_mercator1.jpg){width="403"}
 
-------------------------------------------------------------------------
+Cada proyección intenta minimizar alguno de estos aspectos, pero
+**ninguna puede conservarlos todos a la vez**. Por eso es clave elegir
+la proyección adecuada según el objetivo del análisis.
 
 ## Sistemas de Referencia de Coordenadas (SRC)
 
-La posición geográfica de los objetos se expresa a través de un **Sistema de Referencia de Coordenadas (SRC)**. Existen dos tipos principales:
+La posición geográfica de los objetos se expresa a través de un
+**Sistema de Referencia de Coordenadas (SRC)**. Existen dos tipos
+principales:
 
--   **Geográficos**: usan coordenadas angulares (grados de latitud y longitud). Son útiles para trabajar a escalas amplias como países o continentes.
--   **Proyectados**: convierten la superficie curva de la Tierra en un plano, utilizando coordenadas cartesianas (X, Y, en metros). Se prefieren para escalas más detalladas, como ciudades o barrios.
+-   **Geográficos**: usan coordenadas angulares (grados de latitud y
+    longitud). Son útiles para trabajar a escalas amplias como países o
+    continentes.
+-   **Proyectados**: convierten la superficie curva de la Tierra en un
+    plano, utilizando coordenadas cartesianas (X, Y, en metros). Se
+    prefieren para escalas más detalladas, como ciudades o barrios.
 
-La elección del SRC depende del tipo de análisis. Trabajar en un SRC incorrecto puede generar errores en cálculos de distancias, áreas o relaciones espaciales.
+La elección del SRC depende del tipo de análisis. Trabajar en un SRC
+incorrecto puede generar errores en cálculos de distancias, áreas o
+relaciones espaciales.
 
 ::: callout-important
 #### Sistemas de coordenadas en Argentina: POSGAR
 
-En Argentina, la autoridad encargada de definir y regular los **sistemas de referencia geodésicos** es el **Instituto Geográfico Nacional (IGN)**. Este organismo es el responsable de establecer el marco geodésico nacional y proveer servicios vinculados a la georreferenciación precisa de datos espaciales.
+En Argentina, la autoridad encargada de definir y regular los **sistemas
+de referencia geodésicos** es el **Instituto Geográfico Nacional
+(IGN)**. Este organismo es el responsable de establecer el marco
+geodésico nacional y proveer servicios vinculados a la
+georreferenciación precisa de datos espaciales.
 
-El sistema de referencia oficial es el **POSGAR (Posiciones Geodésicas Argentinas)**, basado en el marco global **SIRGAS** y compatible con el sistema internacional **WGS84**.
+El sistema de referencia oficial es el **POSGAR (Posiciones Geodésicas
+Argentinas)**, basado en el marco global **SIRGAS** y compatible con el
+sistema internacional **WGS84**.
 
-El POSGAR cuenta con distintas versiones (POSGAR 94, POSGAR 98, POSGAR 2007), que han ido mejorando su precisión en base a nuevas mediciones satelitales y ajustes continentales.
+El POSGAR cuenta con distintas versiones (POSGAR 94, POSGAR 98, POSGAR
+2007), que han ido mejorando su precisión en base a nuevas mediciones
+satelitales y ajustes continentales.
 
-Cuando se trabaja con datos geoespaciales en **la provincia de Buenos Aires**, y particularmente en la ciudad de **La Plata**, es importante tener en cuenta algunos aspectos clave para garantizar la correcta georreferenciación y el análisis espacial:
+Cuando se trabaja con datos geoespaciales en **la provincia de Buenos
+Aires**, y particularmente en la ciudad de **La Plata**, es importante
+tener en cuenta algunos aspectos clave para garantizar la correcta
+georreferenciación y el análisis espacial:
 
--   Verificar que los datos estén en un **sistema proyectado**, como **Gauss-Krüger**, utilizando **POSGAR como datum**.
+-   Verificar que los datos estén en un **sistema proyectado**, como
+    **Gauss-Krüger**, utilizando **POSGAR como datum**.
 
--   Utilizar el **sistema de referencia de coordenadas (CRS)** adecuado a la zona. La provincia de Buenos Aires se encuentra en la **faja 5**, que en POSGAR 2007 corresponde al código **EPSG:5347**.
+-   Utilizar el **sistema de referencia de coordenadas (CRS)** adecuado
+    a la zona. La provincia de Buenos Aires se encuentra en la **faja
+    5**, que en POSGAR 2007 corresponde al código **EPSG:5347**.
 
--   Asegurarse de que **todos los datasets estén en el mismo CRS**, para evitar problemas en la visualización o errores en cálculos de distancia, área o relaciones espaciales.
+-   Asegurarse de que **todos los datasets estén en el mismo CRS**, para
+    evitar problemas en la visualización o errores en cálculos de
+    distancia, área o relaciones espaciales.
 
--   Podés consultar información oficial, acceder a servicios de georreferenciación y descargar capas geográficas desde el sitio del **Instituto Geográfico Nacional (IGN)**: <https://www.ign.gob.ar>
+-   Podés consultar información oficial, acceder a servicios de
+    georreferenciación y descargar capas geográficas desde el sitio del
+    **Instituto Geográfico Nacional (IGN)**: <https://www.ign.gob.ar>
 :::
-
-------------------------------------------------------------------------
-
-::: callout-quote
-“Todo está relacionado con todo, pero las cosas más cercanas están más relacionadas que las cosas lejanas.”
-
-Fuente: Tobler, W. (1970). *A computer movie simulating urban growth in the Detroit region*. *Economic Geography*, 46(sup1), 234–240. https://doi.org/10.2307/143141
-:::
-
-## ️ Capas, datos vectoriales y ráster
-
-La información en un SIG se organiza en **capas temáticas**. Cada capa contiene un tipo específico de datos: por ejemplo: capa de escuelas (puntos), radios censales (polígonos), pixels (con una o más variables). Estas capas pueden analizarse por separado o en conjunto.
-
-Los datos espaciales pueden presentarse como:
-
--   **Archivos vectoriales** (`.shp`, `.geojson`, etc.): describen formas geométricas con coordenadas.
--   **Rásters** (`.tif`, `.img`, etc.): representan variables continuas con grillas de píxeles.
-
-Cada elemento geográfico tiene **atributos asociados** que permiten enriquecer el análisis (Ej: la matrícula de una escuela o la densidad poblacional de un radio)
-
-------------------------------------------------------------------------
 
 ## Consideraciones para trabajar en un SIG
 
@@ -105,4 +176,11 @@ Cada elemento geográfico tiene **atributos asociados** que permiten enriquecer 
 -   Entender las limitaciones de los métodos utilizados.
 -   Complementar el análisis visual con herramientas estadísticas.
 
-Bibliografia
+## Bibliografía
+
+-   Álvarez, M. G. (n.d.). *Cartographic projections: deforming the
+    Earth to represent it*. Retrieved July 6, 2025, from
+    https://www.cartographerstale.com/p/cartographic-projections
+
+-   Lovelace, R., Nowosad, J., and Muenchow, J. (2024). *Geocomputation
+    with R*. https://geocompr.robinlovelace.net/
