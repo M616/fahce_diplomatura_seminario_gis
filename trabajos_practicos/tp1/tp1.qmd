@@ -191,8 +191,9 @@ escuelas <-
 El formato GeoPackage (.gpkg) es un estándar moderno y recomendado para trabajar con información geoespacial. A diferencia de archivos como .shp (que requieren múltiples archivos complementarios), un .gpkg almacena todos los datos en un único archivo, incluyendo geometría, atributos, proyecciones y múltiples capas.
 
 ::: callout-note
-# Open Street Map
-**OpenStreetMap (OSM)** es un proyecto colaborativo que busca construir un mapa libre, abierto y editable del mundo. Al estilo de una “Wikipedia de los mapas”, cualquier persona puede contribuir agregando calles, edificios, escuelas o espacios públicos. Esto lo convierte en una fuente valiosa, especialmente en contextos donde los datos oficiales son escasos o difíciles de obtener.
+# Open Street Map (OSM)
+
+Es un proyecto colaborativo que busca construir un mapa libre, abierto y editable del mundo. Al estilo de una “Wikipedia de los mapas”, cualquier persona puede contribuir agregando calles, edificios, escuelas o espacios públicos. Esto lo convierte en una fuente valiosa, especialmente en contextos donde los datos oficiales son escasos o difíciles de obtener.
 
 Una de sus ventajas clave es que OSM es gratuito, a diferencia de servicios como Google Maps que tienen restricciones de uso o cobran por volumen. Por eso, es muy utilizado en proyectos educativos, desarrollos de software libre, investigaciones y planificación urbana.
 
@@ -201,38 +202,8 @@ Sin embargo, la cobertura y el nivel de detalle pueden variar según la región 
 En R, una de las formas más comunes de acceder a OSM es a través del paquete osmdata, que permite realizar consultas a la API y descargar datos vectoriales directamente como objetos sf. Ver catalogo: <https://wiki.openstreetmap.org/wiki/Map_features>
 :::
 
-```{r}
-#| eval: false
-#| include: false
-
-# Los datos utilizados provienen de OpenStreetMap (OSM), un proyecto colaborativo
-# que busca construir un mapa libre, abierto y editable del mundo. Al estilo de
-# una “Wikipedia de los mapas”, cualquier persona puede contribuir agregando
-# calles, edificios, escuelas o espacios públicos. Esto lo convierte en una fuente
-# valiosa, especialmente en contextos donde los datos oficiales son escasos o
-# difíciles de obtener.
-#
-# Una de sus ventajas clave es que OSM es gratuito, a diferencia de servicios como
-# Google Maps que tienen restricciones de uso o cobran por volumen. Por eso, es
-# muy utilizado en proyectos educativos, desarrollos de software libre,
-# investigaciones y planificación urbana.
-#
-# Sin embargo, la cobertura y el nivel de detalle pueden variar según la región,
-# ya que dependen del grado de participación de la comunidad local. En grandes
-# ciudades o áreas con comunidades activas, la cartografía suele estar muy
-# actualizada; en cambio, en zonas rurales o menos representadas, puede haber
-# vacíos o menor precisión. Aun así, es una fuente confiable, abierta y revisada
-# continuamente, con mecanismos para validar y corregir los datos aportados.
-#
-# En R, una de las formas más comunes de acceder a OSM es a través del paquete
-# osmdata, que permite realizar consultas a la API y descargar datos vectoriales
-# directamente como objetos sf. Ver catalogo: https://wiki.openstreetmap.org/wiki/Map_features
-```
-
-```{r}
-#| eval: false
-#| include: false
-#| echo: false
+```{r avenidas}
+#| echo: true
 avenidas <-
   st_read(here("data/raw/OSM/avenidas_osm.gpkg"))
 ```
@@ -267,14 +238,14 @@ Además, pueden aparecer archivos adicionales:
 
 Para trabajar correctamente con un shapefile, es importante mantener juntos todos estos archivos. El archivo `.shp` por sí solo no es suficiente.
 
-En este caso, se trata de la capa de radios censales publicada como insumo para el Censo Nacional 2022. Representa unidades geográficas en las que se organizan los operativos censales, y es una capa clave para análisis sociodemográficos.
+En este caso, se trata de la capa de radios censales del CNPHV 2022. Representa unidades geográficas en las que se organizan los operativos censales, y es una capa clave para análisis sociodemográficos.
 
-```{r}
+```{r radios}
 radios <- 
   st_read(here("data/raw/censo/radios_censales/Radios 2022 v2025-1.shp"))
 ```
 
-```{r}
+```{r radios_plot}
 plot(radios[1,1])
 ```
 
@@ -288,9 +259,9 @@ plot(radios[1,1])
 
 Esta capa contiene los polígonos correspondientes a los **barrios relevados por el RENABAP**, que representan áreas urbanas informales reconocidas oficialmente por el Estado Nacional. Estos datos permiten identificar situaciones de vulnerabilidad habitacional y son clave en estudios urbanos, sociales y de accesibilidad.
 
-El archivo provisto está en formato GeoPackage, pero fue **mal guardado sin extensión**, lo que genera una advertencia al intentar leerlo con `{sf}`. Aun así, `st_read()` logra interpretar correctamente el contenido si se especifica la ruta al archivo.
+El archivo provisto está en formato GeoPackage, pero fue **mal guardado sin extensión**, lo que genera una advertencia al intentar leerlo con `sf`. Aun así, `st_read()` logra interpretar correctamente el contenido si se especifica la ruta al archivo.
 
-```{r}
+```{r renabap}
 renabap <- 
   st_read(here("data/raw/renabap/renabap-datos-barrios-gpkg"))
 ```
@@ -301,7 +272,7 @@ La función `mapview()` permite explorar datos espaciales de forma rápida e int
 
 1.  Visualización básica (por defecto):
 
-```{r}
+```{r mapview_salud}
 #| echo: true
 #| eval: false
 
@@ -312,7 +283,7 @@ mapview(salud_sf)
 
 2.  Colorear por variable categórica (automático):
 
-```{r}
+```{r mapview_zcol}
 #| echo: true
 #| eval: false
 mapview(escuelas, zcol = "sector")
@@ -320,7 +291,7 @@ mapview(escuelas, zcol = "sector")
 
 3.  Aplicar filtro y personalizar colores por categoría:
 
-```{r}
+```{r mapview_zcol_col.regions}
 #| echo: true
 #| eval: false
 cols_sector <- c("Público" = "steelblue", "Privado" = "orange")
@@ -346,7 +317,7 @@ mapview(
 
 4.  Superposición simple de capas:
 
-```{r}
+```{r mapview_append}
 #| echo: true
 #| eval: false
 mapview(renabap) + mapview(salud_sf)
@@ -354,7 +325,7 @@ mapview(renabap) + mapview(salud_sf)
 
 5.  Superposición con estilos personalizados:
 
-```{r}
+```{r mapview_custom_append}
 #| echo: true
 #| eval: false
 mapview(
@@ -376,7 +347,7 @@ Se debe tener en cuenta que mapview() no se renderiza en documentos PDF, pero s�
 
 ## Geoprocesos
 
-```{r}
+```{r st_use_sf2}
 #| eval: false
 #| include: false
 sf::sf_use_s2(FALSE)
@@ -393,7 +364,7 @@ El geoprocesamiento vectorial permite:
 -   Preparar datos para visualización o modelado.
 
 | Función | ¿Qué hace? | Ejemplo básico |
-|------------------------|------------------------|------------------------|
+|----|----|----|
 | `st_filter()` | Filtra objetos de una capa en función de su relación espacial con otra capa. No agrega atributos, solo selecciona. | `st_filter(puntos, poligono, .predicate = st_within)` |
 | `st_buffer()` | Genera un área de influencia o zona de proximidad alrededor de una geometría. Muy útil para analizar cobertura o impacto. | `st_buffer(salud_sf, dist = 500)` |
 | `st_intersection()` | Devuelve la geometría que resulta de la superposición espacial entre dos capas. | `st_intersection(capa1, capa2)` |
@@ -409,7 +380,7 @@ La función `st_join()` permite realizar una **unión espacial de atributos** en
 
 Sintaxis básica
 
-```{r}
+```{r st_intersects}
 #| eval: false
 #| include: false
 st_join(x, y, join = st_intersects)
@@ -426,7 +397,7 @@ El resultado tendrá la geometría de x y los atributos agregados de y, según l
 **Tipos de relaciones espaciales usadas en `st_join()`:**
 
 | Relación espacial | Uso dentro de `st_join()` | ¿Qué hace? |
-|------------------------|------------------------|------------------------|
+|----|----|----|
 | **Intersección** | `join = st_intersects` | Une atributos si las geometrías se superponen en alguna parte. Muy común para unir puntos dentro de polígonos. |
 | **Dentro de** | `join = st_within` | Une solo si la geometría de `x` está completamente dentro de `y`. |
 | **Contiene** | `join = st_contains` | Une si `x` contiene completamente a `y`. |
@@ -440,6 +411,8 @@ Por lo general, se usa `st_intersects` como opción estándar porque captura cua
 Las otras funciones se emplean en situaciones específicas donde se requiere definir con precisión cómo se relacionan los objetos espaciales (por ejemplo, cuando es importante que una geometría esté completamente dentro de otra, o solo en contacto en el borde). Por eso, la elección de la función depende del objetivo del análisis y del nivel de detalle necesario.
 
 ::: callout-warning
+#### Advertencia
+
 Antes de ejecutar un geoproceso entre dos capas es necesario que **ambas estén en el mismo sistema de referencia de coordenadas (CRS)**. Estas se pueden transformar utilizando la función `st_transform()`. Además, si al trabajar con **distancias, áreas, perímetros u otras medidas métricas** es fundamental que el CRS sea **proyectado** (por ejemplo, EPSG:5347), ya que los sistemas geográficos (como WGS84) no ofrecen unidades adecuadas para cálculos precisos.
 :::
 
@@ -612,8 +585,8 @@ La función `st_distance()` calcula la **distancia** entre geometrías. Puede ap
 
 La función `st_area()` calcula el **área** de geometrías tipo polígono. Devuelve un valor numérico en las unidades del sistema de referencia (por ejemplo, metros cuadrados si está en proyección métrica).
 
-::: callout-tip
-#### Unión previa antes de la diferencia espacial
+::: callout-important
+#### Importante
 
 Los procesos de geoprocesamiento que se presentaron no son exclusivos de R ni del paquete `sf`, sino que forman parte del conjunto de herramientas fundamentales en cualquier Sistema de Información Geográfica (GIS). Estas operaciones son compartidas y utilizadas en otros lenguajes como Python (con librerías como `geopandas` y `shapely`) o en software de escritorio como QGIS o ArcGIS. La lógica subyacente es común a todos los entornos.
 :::
