@@ -8,6 +8,8 @@ format:
     toc-title: Indice
     number-sections: false
     toc-depth: 3
+    header-includes:
+      - \titlehead{\flushright\includegraphics[width=0.4\textwidth]{../../images/Logo-fahce-unlp-negro.png}}
 editor_options: 
   chunk_output_type: inline
 ---
@@ -18,24 +20,29 @@ editor_options:
 
 Este trabajo se propone presentar cómo son tratados los **objetos espaciales vectoriales en R**, principalmente a través del uso de la librería `{sf}` dentro del ecosistema `{tidyverse}`. Se abordan conceptos fundamentales sobre el formato, la manipulación y la visualización de datos vectoriales, y se exploran algunas de las **operaciones básicas de geoprocesamiento.**y de visualización tanto dinámica (`mapview()`) como estática (`ggplot2 + geom_sf()`), aplicadas a datos reales provenientes de fuentes públicas.
 
-#### Objetivo general
+```{r}
+#| eval: false
+#| include: false
 
-**Manipular, visualizar y analizar datos geográficos vectoriales en R, utilizando herramientas del paquete `{sf}` y del ecosistema `{tidyverse}`.**
+### Objetivo general
+
+#**Manipular, visualizar y analizar datos geográficos ##vectoriales en R, utilizando herramientas del paquete #`{sf}` #y del ecosistema `{tidyverse}`.**
 
 #### Objetivos específicos
 
--   Comprender el formato y la estructura de los objetos vectoriales en
+#-   Comprender el formato y la estructura de los objetos #vectoriales en
 
-    R.  
+#    R.  
 
--   Abrir y trabajar con diferentes formatos de archivos geoespaciales (`.csv`, `.kml`, `.shp`, `.gpkg`).
+#-   Abrir y trabajar con diferentes formatos de archivos #geoespaciales (`.csv`, `.kml`, `.shp`, `.gpkg`).
 
--   Explorar y visualizar datos espaciales mediante `mapview()` y `geom_sf()`.
+#-   Explorar y visualizar datos espaciales mediante #`mapview()` y `geom_sf()`.
 
--   Aplicar filtros por atributos y realizar uniones espaciales.
+#-   Aplicar filtros por atributos y realizar uniones #espaciales.
 
--   Revisar y utilizar fuentes de datos abiertas disponibles (Gobierno de la Provincia de Buenos Aires, INDEC, OpenStreetMap, RENABAP, entre otras).
+#-   Revisar y utilizar fuentes de datos abiertas disponibles #(Gobierno de la Provincia de Buenos Aires, INDEC, #OpenStreetMap, RENABAP, entre otras).
 
+```
 ------------------------------------------------------------------------
 
 ## Tipo de Vectores. Carga y exploración de datos
