@@ -1,6 +1,6 @@
 ---
 title: "Sistemas de información geográfica. TP1: Geoprocesos con datos vectoriales."
-author: Marcos May
+author: Prof. Marcos May
 email: mmmay@fahce.unlp.edu.ar
 format:
   pdf:
@@ -18,9 +18,9 @@ editor_options:
 
 ## Objetivos
 
-Este trabajo se propone presentar cómo son tratados los **objetos espaciales vectoriales en R**, principalmente a través del uso de la librería `{sf}` dentro del ecosistema `{tidyverse}`. Se abordan conceptos fundamentales sobre el formato, la manipulación y la visualización de datos vectoriales, y se exploran algunas de las **operaciones básicas de geoprocesamiento.**y de visualización tanto dinámica (`mapview()`) como estática (`ggplot2 + geom_sf()`), aplicadas a datos reales provenientes de fuentes públicas.
+Este trabajo se propone presentar cómo son tratados los **objetos espaciales vectoriales en R**, principalmente a través del uso de la librería `sf` dentro del ecosistema `tidyverse`. Se abordan conceptos fundamentales sobre el formato, la manipulación y la visualización de datos vectoriales, y se exploran algunas de las **operaciones básicas de geoprocesamiento.**y de visualización tanto dinámica (`mapview()`) como estática (`ggplot2 + geom_sf()`), aplicadas a datos reales provenientes de fuentes públicas.
 
-```{r}
+```{r objetivos}
 #| eval: false
 #| include: false
 
@@ -43,9 +43,10 @@ Este trabajo se propone presentar cómo son tratados los **objetos espaciales ve
 #-   Revisar y utilizar fuentes de datos abiertas disponibles #(Gobierno de la Provincia de Buenos Aires, INDEC, #OpenStreetMap, RENABAP, entre otras).
 
 ```
+
 ------------------------------------------------------------------------
 
-## Tipo de Vectores. Carga y exploración de datos
+## Ejercitación 1. Tipo de Vectores. Carga y exploración de datos
 
 ```{r setup, warning=FALSE, echo=FALSE, message=FALSE}
 library(tidyverse)   # Manipulación de datos  
@@ -56,7 +57,7 @@ library(janitor)     # Para limpieza de datos
 library(ggspatial)   # Para insertar rosa de los vientos y barra de                         escala en los mapas
 ```
 
-En los Sistemas de Información Geográfica (SIG), los datos vectoriales se utilizan para representar entidades geográficas mediante tres tipos básicos de geometrías:
+En los Sistemas de Información Geográfica los datos vectoriales se utilizan para representar entidades geográficas mediante tres tipos básicos de geometrías:
 
 -   **Puntos:** representan ubicaciones precisas, como edificios, centros de salud o antenas.
 
@@ -64,9 +65,9 @@ En los Sistemas de Información Geográfica (SIG), los datos vectoriales se util
 
 -   **Polígonos:** representan superficies delimitadas, como barrios, parcelas o áreas censales.
 
-Cuando se cargan en R mediante la librería {sf}, estos datos vectoriales se transforman en data frames espaciales, también conocidos como geodataframes u objetos sf. Al igual que un data.frame o un tibble, estos objetos tienen filas (una por cada entidad geográfica) y columnas (atributos descriptivos). Lo que los distingue es la inclusión de una columna especial llamada geometry, que almacena la información espacial (coordenadas de puntos, líneas o polígonos).
+Cuando se cargan en R mediante la librería `sf`, estos datos vectoriales se transforman en data frames espaciales, también conocidos como geodataframes u objetos sf. Al igual que un data.frame o un tibble, estos objetos tienen filas (una por cada entidad geográfica) y columnas (atributos descriptivos). Lo que los distingue es la inclusión de una columna especial llamada **geometry**, que almacena la información espacial (coordenadas de puntos, líneas o polígonos).
 
-Este diseño permite trabajar de forma integrada con los datos alfanuméricos y espaciales. Por ejemplo, al aplicar funciones como print() o head() se visualiza tanto la tabla como un resumen de la geometría. Además, los objetos sf son plenamente compatibles con el ecosistema {tidyverse}, lo que permite usar funciones como filter(), mutate(), group_by() o select() sobre capas espaciales. Estas operaciones pueden luego complementarse con funciones específicas para análisis geográficos como st_join(), st_buffer(), st_intersection(), entre otras que se verán más adelante.
+Este diseño permite trabajar de forma integrada con los datos tradicionales y espaciales. Por ejemplo, al aplicar funciones como `print()` o `head()` se visualiza tanto la tabla como un resumen de la geometría. Además, los objetos sf son plenamente compatibles con el ecosistema `tidyverse`, lo que permite usar funciones como `filter()`, `mutate()`, `group_by()` o `select()` sobre capas espaciales. Estas operaciones pueden luego complementarse con funciones específicas para análisis geográficos como `st_join()`, `st_buffer()`, `st_intersection()`, entre otras que se verán más adelante.
 
 Una vez abiertos, los datos pueden explorarse visualmente de dos formas principales:
 
@@ -78,7 +79,7 @@ Una vez abiertos, los datos pueden explorarse visualmente de dos formas principa
 
     -   **Con `ggplot2` y `geom_sf()`:** permite generar mapas reproducibles y de alta calidad, con mayor control sobre la estética, las escalas, los temas y la combinación con otros tipos de gráficos. Este enfoque es especialmente adecuado para informes formales, publicaciones científicas o presentaciones, y se desarrollará más adelante en el documento.
 
-A continuación, se presentan ejemplos concretos de cada tipo de geometría (puntos, líneas y polígonos), utilizando fuentes de datos abiertas provistas por organismos oficiales (Gobierno de la Provincia de Buenos Aires, INDEC, RENABAP, OpenStreetMap, entre otros). Los datos provienen de distintos formatos geográficos (como .csv, .kml, .shp y .gpkg) y son abiertos en R mediante las funciones `st_read()` (cuando el archivo ya contiene geometría) o `st_as_sf()` (cuando la geometría se construye a partir de coordenadas). Se abordan algunas herramientas de exploración gráfica como `plot()` y `mapview()`.
+A continuación, se presentan ejemplos concretos de cada tipo de geometría (puntos, líneas y polígonos), utilizando fuentes de datos abiertas provistas por organismos oficiales (Gobierno de la Provincia de Buenos Aires, INDEC, RENABAP, OpenStreetMap, entre otros). Los datos provienen de distintos formatos geográficos (como .`csv`, `.kml`, .`shp` y .`gpkg`) y son abiertos en R mediante las funciones `st_read()` (cuando el archivo ya contiene geometría) o `st_as_sf()` (cuando la geometría se construye a partir de coordenadas). Se abordan algunas herramientas de exploración gráfica como `plot()` y `mapview()`.
 
 ### Puntos
 
@@ -88,36 +89,53 @@ A continuación, se presentan ejemplos concretos de cada tipo de geometría (pun
 
 **Link:** <https://catalogo.datos.gba.gob.ar/dataset/establecimientos-salud/archivo/c52f9497-9eab-4ecd-a382-b4e4c6033a02>
 
+::: callout-caution
+## Descarga de archivos
+
+Una vez descargados los archivos en la carpeta de descargas, deberán ser movidos a la carpeta de trabajo del proyecto. Se recomienda ubicarlos en la subcarpeta `data/raw/` dentro del directorio raíz. Esta carpeta está destinada a almacenar los archivos *crudos*, es decir, aquellos que aún no han sido modificados.
+
+En la subcarpeta `data/processed/`almacenaremos nuestros datos ya procesados.
+:::
+
 **Formato:** `.csv` (valores separados por comas)
 
-El formato `.csv` (Comma-Separated Values) es un formato tabular ampliamente utilizado, aunque **no incluye información espacial directamente**. Para convertirlo en un objeto espacial, es necesario indicar manualmente qué columnas contienen las coordenadas (en este caso: `long` y `lat`). Para ello se utiliza `st_as_sf()` de la librería `{sf}`.
+El formato **.csv** (Comma-Separated Values) es un formato tabular ampliamente utilizado, aunque no incluye información espacial de forma explícita. Para convertirlo en un objeto espacial, es necesario indicar manualmente qué columnas contienen las coordenadas. Es importante respetar el orden: primero la **longitud** (*x*), luego la **latitud** (*y*) —en este caso, las columnas se llaman `long` y `lat`.
 
-```{r}
+Para realizar esta conversión, se utiliza la función `st_as_sf()` de la librería `sf`. Además de las coordenadas, la función requiere que se indique el sistema de referencia de coordenadas (**crs**) en el que están expresadas la longitud y la latitud.
+
+```{r salud_csv}
 salud<-
   read_delim(here("data/raw/salud/establecimientos_salud_publicos-2025.csv"), 
     delim = ";", escape_double = FALSE, trim_ws = TRUE)
 ```
 
-```{r}
+```{r salud_sf}
 salud_sf <- 
   st_as_sf(salud,
            coords = c("long", "lat"),
+           remove = FALSE,
            crs = 4326)
 ```
 
-Exportamos el archivo en formato gpkg:
+Ya tenemos nuestro primer dataframe espacial.
 
 ```{r}
+class(salud_sf)
+```
+
+```{r}
+glimpse(salud_sf)
+```
+
+Exportamos el archivo en formato gpkg (formato explicado líneas abajo):
+
+```{r salud_write}
 dir.create(here('data/processed/salud'))
 
 st_write(salud_sf,
          here('data/processed/salud/centros_de_salud.gpkg'),
          append = FALSE)
 ```
-
-
-
-
 
 #### Visualización rápida con `plot()` (R base)
 
@@ -131,7 +149,7 @@ plot(salud_sf)
 
 Podemos seleccionar una sola columna (atributo) utilizando el nombre de la variable. Por ejemplo, si queremos graficar únicamente la variable `Dep`, usamos:
 
-```{r}
+```{r salud_sf_plot_Dep}
 plot(salud_sf[,'Dep'])
 ```
 
@@ -139,7 +157,7 @@ Esto mostrará un mapa donde las geometrías se colorean según los valores de l
 
 También podemos filtrar por fila, es decir, seleccionar una sola entidad geográfica (por ejemplo, un solo punto, línea o polígono) y graficarla:
 
-```{r}
+```{r salud_sf_plot_raw}
 plot(salud_sf[355,'Dep'])
 ```
 
@@ -157,7 +175,7 @@ El **formato `.geojson`** es una extensión del formato JSON especialmente dise�
 
 A diferencia del `.csv`, los archivos `.geojson` **ya contienen información geométrica estructurada**, y pueden abrirse directamente como objetos `sf` usando `st_read()`, sin necesidad de especificar columnas de coordenadas.
 
-```{r}
+```{r st_read_escuelas}
 escuelas <-
   st_read(here("data/raw/educacion/establecimientos-educativos-30062025.geojson"))
 ```
@@ -171,6 +189,17 @@ escuelas <-
 **Formato:** .gpkg (GeoPackage).
 
 El formato GeoPackage (.gpkg) es un estándar moderno y recomendado para trabajar con información geoespacial. A diferencia de archivos como .shp (que requieren múltiples archivos complementarios), un .gpkg almacena todos los datos en un único archivo, incluyendo geometría, atributos, proyecciones y múltiples capas.
+
+::: callout-note
+# Open Street Map
+**OpenStreetMap (OSM)** es un proyecto colaborativo que busca construir un mapa libre, abierto y editable del mundo. Al estilo de una “Wikipedia de los mapas”, cualquier persona puede contribuir agregando calles, edificios, escuelas o espacios públicos. Esto lo convierte en una fuente valiosa, especialmente en contextos donde los datos oficiales son escasos o difíciles de obtener.
+
+Una de sus ventajas clave es que OSM es gratuito, a diferencia de servicios como Google Maps que tienen restricciones de uso o cobran por volumen. Por eso, es muy utilizado en proyectos educativos, desarrollos de software libre, investigaciones y planificación urbana.
+
+Sin embargo, la cobertura y el nivel de detalle pueden variar según la región ya que dependen del grado de participación de la comunidad local. En grandes ciudades o áreas con comunidades activas la cartografía suele estar muy actualizada; en cambio en zonas rurales o menos representadas puede haber vacíos o menor precisión. Aun así, es una fuente confiable, abierta y revisada continuamente, con mecanismos para validar y corregir los datos aportados.
+
+En R, una de las formas más comunes de acceder a OSM es a través del paquete osmdata, que permite realizar consultas a la API y descargar datos vectoriales directamente como objetos sf. Ver catalogo: <https://wiki.openstreetmap.org/wiki/Map_features>
+:::
 
 ```{r}
 #| eval: false
@@ -248,7 +277,6 @@ radios <-
 ```{r}
 plot(radios[1,1])
 ```
-
 
 **Capa:** Barrios populares (RENABAP)
 
@@ -586,6 +614,7 @@ La función `st_area()` calcula el **área** de geometrías tipo polígono. Devu
 
 ::: callout-tip
 #### Unión previa antes de la diferencia espacial
+
 Los procesos de geoprocesamiento que se presentaron no son exclusivos de R ni del paquete `sf`, sino que forman parte del conjunto de herramientas fundamentales en cualquier Sistema de Información Geográfica (GIS). Estas operaciones son compartidas y utilizadas en otros lenguajes como Python (con librerías como `geopandas` y `shapely`) o en software de escritorio como QGIS o ArcGIS. La lógica subyacente es común a todos los entornos.
 :::
 

@@ -1,6 +1,6 @@
 ---
 title: 'Sistemas de información geográfica. Introducción'
-author: 'Marcos May'
+author: 'Prof. Marcos May'
 format:
   pdf:
     toc: false
