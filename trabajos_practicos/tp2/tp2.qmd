@@ -1,6 +1,6 @@
 ---
-title: "Sistemas de información geográfica. TP2: Geoprocesos con datos vectoriales (continuación)."
-author: Marcos May
+title: "Sistemas de información geográfica. TP2: Geoprocesos con datos vectoriales (continuación)"
+author: Prof. Marcos May
 email: mmmay@fahce.unlp.edu.ar
 format:
   pdf:
@@ -8,6 +8,8 @@ format:
     toc-title: Indice
     number-sections: false
     toc-depth: 3
+    header-includes:
+      - \titlehead{\flushright\includegraphics[width=0.4\textwidth]{../../images/Logo-fahce-unlp-negro.png}}
 editor_options: 
   chunk_output_type: inline
 ---
@@ -362,8 +364,13 @@ Unidad: metros (ideal para calcular distancias)
 lp <- st_transform(lp, 5347)
 centroides <- st_transform(centroides, 5347)
 secu <- st_transform(secu, 5347)
-
 ```
+
+```{r}
+save(centroides, 
+     file = here('data/processed/lp_centroides_radios.Rda'))
+```
+
 
 ```{r}
 #| label: calculo-distancias

@@ -1,5 +1,5 @@
 ---
-title: "Sistemas de información geográfica. TP1: Geoprocesos con datos vectoriales."
+title: "Sistemas de información geográfica. TP1: Geoprocesos con datos vectoriales"
 author: Prof. Marcos May
 email: mmmay@fahce.unlp.edu.ar
 format:
@@ -90,7 +90,7 @@ A continuación, se presentan ejemplos concretos de cada tipo de geometría (pun
 **Link:** <https://catalogo.datos.gba.gob.ar/dataset/establecimientos-salud/archivo/c52f9497-9eab-4ecd-a382-b4e4c6033a02>
 
 ::: callout-caution
-## Descarga de archivos
+#### Descarga de archivos
 
 Una vez descargados los archivos en la carpeta de descargas, deberán ser movidos a la carpeta de trabajo del proyecto. Se recomienda ubicarlos en la subcarpeta `data/raw/` dentro del directorio raíz. Esta carpeta está destinada a almacenar los archivos *crudos*, es decir, aquellos que aún no han sido modificados.
 
@@ -191,7 +191,7 @@ escuelas <-
 El formato GeoPackage (.gpkg) es un estándar moderno y recomendado para trabajar con información geoespacial. A diferencia de archivos como .shp (que requieren múltiples archivos complementarios), un .gpkg almacena todos los datos en un único archivo, incluyendo geometría, atributos, proyecciones y múltiples capas.
 
 ::: callout-note
-# Open Street Map (OSM)
+#### Open Street Map (OSM)
 
 Es un proyecto colaborativo que busca construir un mapa libre, abierto y editable del mundo. Al estilo de una “Wikipedia de los mapas”, cualquier persona puede contribuir agregando calles, edificios, escuelas o espacios públicos. Esto lo convierte en una fuente valiosa, especialmente en contextos donde los datos oficiales son escasos o difíciles de obtener.
 
@@ -364,7 +364,7 @@ El geoprocesamiento vectorial permite:
 -   Preparar datos para visualización o modelado.
 
 | Función | ¿Qué hace? | Ejemplo básico |
-|----|----|----|
+|------------------------|------------------------|------------------------|
 | `st_filter()` | Filtra objetos de una capa en función de su relación espacial con otra capa. No agrega atributos, solo selecciona. | `st_filter(puntos, poligono, .predicate = st_within)` |
 | `st_buffer()` | Genera un área de influencia o zona de proximidad alrededor de una geometría. Muy útil para analizar cobertura o impacto. | `st_buffer(salud_sf, dist = 500)` |
 | `st_intersection()` | Devuelve la geometría que resulta de la superposición espacial entre dos capas. | `st_intersection(capa1, capa2)` |
@@ -397,7 +397,7 @@ El resultado tendrá la geometría de x y los atributos agregados de y, según l
 **Tipos de relaciones espaciales usadas en `st_join()`:**
 
 | Relación espacial | Uso dentro de `st_join()` | ¿Qué hace? |
-|----|----|----|
+|------------------------|------------------------|------------------------|
 | **Intersección** | `join = st_intersects` | Une atributos si las geometrías se superponen en alguna parte. Muy común para unir puntos dentro de polígonos. |
 | **Dentro de** | `join = st_within` | Une solo si la geometría de `x` está completamente dentro de `y`. |
 | **Contiene** | `join = st_contains` | Une si `x` contiene completamente a `y`. |
@@ -418,7 +418,7 @@ Antes de ejecutar un geoproceso entre dos capas es necesario que **ambas estén 
 
 **Caso de estudio**
 
-Queremos identificar qué centros de salud (`salud_sf`) están ubicados dentro de los barrios populares (`renabap`). Para ello, primero es necesario asegurarse de que ambas capas estén en un sistema de coordenadas proyectado (en este caso, `EPSG:5347`), ya que las operaciones espaciales —como la intersección— requieren coherencia en el CRS.
+Queremos identificar qué centros de salud (`salud_sf`) están ubicados dentro de los barrios populares (`renabap`). Para ello, primero es necesario asegurarse que ambas capas estén en un sistema de coordenadas proyectado (en este caso, `EPSG:5347`), ya que las operaciones espaciales —como la intersección— requieren coherencia en el CRS.
 
 ```{r}
 #| echo: true
@@ -542,7 +542,7 @@ No conserva atributos individuales, pero puede combinarse con `group_by()` y `su
 La función `st_difference()` devuelve las partes de una geometría que **no se superponen** con otra. Es útil para identificar áreas **excluidas** por una capa, como las zonas de un barrio que **no** están cubiertas por un buffer de salud.\
 
 ::: callout-warning
-# Advertencia al usar st_difference()
+#### Advertencia al usar st_difference()
 
 `st_difference(x, y)` calcula la parte de `x` que **no se superpone con** `y`. Si `y` tiene **múltiples geometrías**, la diferencia se aplica con **cada geometría por separado**, lo cual puede:
 

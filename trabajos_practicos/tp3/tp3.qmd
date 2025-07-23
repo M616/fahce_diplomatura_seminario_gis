@@ -1,5 +1,5 @@
 ---
-title: "Sistemas de información geográfica. TP2: Geoprocesos con datos vectoriales (continuación)."
+title: "Sistemas de información geográfica. TP2: Geoprocesos con datos vectoriales (continuación)"
 author: Marcos May
 email: mmmay@fahce.unlp.edu.ar
 format:
