@@ -292,7 +292,7 @@ radios <-
 Ploteamos el primer elemento de la primera columna:
 
 ```{r}
-#| radios_plot
+#| label: radios_plot
 plot(radios[1,1])
 ```
 
