@@ -317,18 +317,20 @@ Esta capa contiene los polígonos correspondientes a los **barrios relevados por
 
 El archivo provisto está en formato GeoPackage, pero fue **mal guardado sin extensión**, lo que genera una advertencia al intentar leerlo con `sf`. Aun así, `st_read()` logra interpretar correctamente el contenido si se especifica la ruta al archivo.
 
-```{r renabap}
+```{r}
+#| label: renabap
 renabap <- 
   st_read(here("data/raw/renabap/renabap-datos-barrios-gpkg"))
 ```
 
-## Visualización interactiva con `mapview()`
+## Ejercitación2. Visualización interactiva con `mapview()`
 
-La función `mapview()` permite explorar datos espaciales de forma rápida e interactiva. A continuación se muestran algunos ejemplos con las capas cargadas:
+La función `mapview()` (de la librería homónima) permite explorar datos espaciales de forma rápida e interactiva. A continuación se muestran algunos ejemplos con las capas cargadas:
 
-1.  Visualización básica (por defecto):
+### 1.  Visualización básica (por defecto):
 
-```{r mapview_salud}
+```{r}
+#| label: salud_mapview
 #| echo: true
 #| eval: false
 
@@ -337,17 +339,19 @@ mapview(salud_sf)
 
 ![](images/tp1_01_salud_sf.jpg){width="604"}
 
-2.  Colorear por variable categórica (automático):
+### 2. Colorear por variable categórica (automático):
 
-```{r mapview_zcol}
+```{r}
+#| label: mapview_zcol
 #| echo: true
 #| eval: false
 mapview(escuelas, zcol = "sector")
 ```
 
-3.  Aplicar filtro y personalizar colores por categoría:
+3.  Aplicar filtro y personalizar colores por variable categórica:
 
-```{r mapview_zcol_col.regions}
+```{r}
+#| label: mapview_zcol_col.regions
 #| echo: true
 #| eval: false
 cols_sector <- c("Público" = "steelblue", "Privado" = "orange")
@@ -371,17 +375,34 @@ mapview(
 
 ![](images/tp1_02_escuelas_ensenada.jpg)
 
-4.  Superposición simple de capas:
 
-```{r mapview_append}
+```{r}
+library(viridis)
+library(viridisLite)
+renabap |> 
+  filter(departamento == 'La Plata') |> 
+  mapview(zcol = 'cantidad_familias_aproximada',
+          layer.name = 'cantidad familias',
+          #col.regions = viridisLite::magma(n= 13, direction = -1))#, 
+          col.regions = viridis)
+          #at = quantile(renabap$cantidad_familias_aproximada, probs = seq(0, 1, 0.25))  )
+
+```
+
+
+### 4.  Superposición simple de capas
+
+```{r}
+#| label:  mapview_append
 #| echo: true
 #| eval: false
 mapview(renabap) + mapview(salud_sf)
 ```
 
-5.  Superposición con estilos personalizados:
+### 5.  Superposición con estilos personalizados:
 
-```{r mapview_custom_append}
+```{r}
+#| label: mapview_custom_append
 #| echo: true
 #| eval: false
 mapview(
@@ -399,11 +420,12 @@ mapview(
 
 ```
 
-Se debe tener en cuenta que mapview() no se renderiza en documentos PDF, pero sí puede visualizarse en HTML o directamente desde RStudio. Además, al presionar el botón Export en la visualización interactiva, se puede exportar la visualización en HTML.
+Se debe tener en cuenta que `mapview()` no se renderiza en documentos PDF, pero sí puede visualizarse en HTML o directamente desde RStudio. Además, al presionar el botón Export en la visualización interactiva, se puede exportar la visualización en HTML.
 
 ## Geoprocesos
 
-```{r st_use_sf2}
+```{r}
+#| label: st_use_sf2
 #| eval: false
 #| include: false
 sf::sf_use_s2(FALSE)
@@ -436,7 +458,8 @@ La función `st_join()` permite realizar una **unión espacial de atributos** en
 
 Sintaxis básica
 
-```{r st_intersects}
+```{r}
+#| label: st_intersects
 #| eval: false
 #| include: false
 st_join(x, y, join = st_intersects)
@@ -477,6 +500,7 @@ Antes de ejecutar un geoproceso entre dos capas es necesario que **ambas estén 
 Queremos identificar qué centros de salud (`salud_sf`) están ubicados dentro de los barrios populares (`renabap`). Para ello, primero es necesario asegurarse que ambas capas estén en un sistema de coordenadas proyectado (en este caso, `EPSG:5347`), ya que las operaciones espaciales —como la intersección— requieren coherencia en el CRS.
 
 ```{r}
+#| label: st_transform
 #| echo: true
 #| include: false
 renabap  <- st_transform(renabap, 5347 )
@@ -486,6 +510,7 @@ salud_sf <- st_transform(salud_sf, 5347 )
 Luego utilizamos `st_join()` con `st_intersects()` para realizar la unión espacial. El resultado lo guardamos en un nuevo objeto llamado salud_joined:
 
 ```{r}
+#| label: salud_joined
 salud_joined <- 
   st_join(salud_sf,
           renabap,
@@ -500,6 +525,7 @@ En las filas donde no hay intersección entre el centro de salud y algún barrio
 Probemos ahora a hacer la union espacial pero colocando como primer argumento (x) a la capa renabap:
 
 ```{r}
+#| label: renabap_joined
 renabap_joined <- 
   st_join(renabap,
           salud_sf,
@@ -512,6 +538,7 @@ Observese que mientras el objeto original renabap antes del join tiene `r nrow(r
 La respuesta es que existen barrios populares con más de un centro de salud en su interior. En otras palabras, cuando un mismo barrio intersecta con más de un centro de salud, el resultado del st_join() devuelve una fila por cada combinación de barrio y centro de salud intersectante, generando así múltiples registros para un mismo barrio.
 
 ```{r}
+#| label: cantidad_centros_salud
 renabap_joined |>
   st_drop_geometry() |>
   count(id_renabap, nombre_barrio, name = 'cantidad_centros_salud') |>
