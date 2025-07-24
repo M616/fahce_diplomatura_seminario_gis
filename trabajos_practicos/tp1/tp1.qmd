@@ -20,7 +20,8 @@ editor_options:
 
 Este trabajo se propone presentar cómo son tratados los **objetos espaciales vectoriales en R**, principalmente a través del uso de la librería `sf` dentro del ecosistema `tidyverse`. Se abordan conceptos fundamentales sobre el formato, la manipulación y la visualización de datos vectoriales, y se exploran algunas de las **operaciones básicas de geoprocesamiento.**y de visualización tanto dinámica (`mapview()`) como estática (`ggplot2 + geom_sf()`), aplicadas a datos reales provenientes de fuentes públicas.
 
-```{r objetivos}
+```{r}
+#| label: objetivos
 #| eval: false
 #| include: false
 
@@ -48,7 +49,12 @@ Este trabajo se propone presentar cómo son tratados los **objetos espaciales ve
 
 ## Ejercitación 1. Tipo de Vectores. Carga y exploración de datos
 
-```{r setup, warning=FALSE, echo=FALSE, message=FALSE}
+```{r}
+#| label: setup
+#| warning: false
+#| message: false
+#| echo: false
+
 library(tidyverse)   # Manipulación de datos  
 library(sf)          # Datos espaciales  
 library(mapview)     # Mapas interactivos  
@@ -103,13 +109,16 @@ El formato **.csv** (Comma-Separated Values) es un formato tabular ampliamente u
 
 Para realizar esta conversión, se utiliza la función `st_as_sf()` de la librería `sf`. Además de las coordenadas, la función requiere que se indique el sistema de referencia de coordenadas (**crs**) en el que están expresadas la longitud y la latitud.
 
-```{r salud_csv}
+```{r}
+#| label: salud_csv
 salud<-
   read_delim(here("data/raw/salud/establecimientos_salud_publicos-2025.csv"), 
-    delim = ";", escape_double = FALSE, trim_ws = TRUE)
+    delim = ";")
 ```
 
-```{r salud_sf}
+```{r}
+#| label: salud_sf
+
 salud_sf <- 
   st_as_sf(salud,
            coords = c("long", "lat"),
@@ -117,19 +126,27 @@ salud_sf <-
            crs = 4326)
 ```
 
-Ya tenemos nuestro primer dataframe espacial.
+Ya tenemos nuestro primer dataframe espacial. Si lo exploramos mediante el comando `class()`, veremos que, además de la clase `data.frame` asociada a los dataframes tradicionales, nuestro objeto tiene también la clase `sf`.
 
 ```{r}
+#| label: salud_sf_class
+
 class(salud_sf)
 ```
 
+Este tipo de objetos tiene la particularidad de que, además de las columnas tradicionales, incorpora una columna especial llamada `geometry`, que almacena la información espacial, como el tipo de geometría y las coordenadas geográficas.
+
 ```{r}
+#| label: salud_sf_glimpse
 glimpse(salud_sf)
 ```
 
 Exportamos el archivo en formato gpkg (formato explicado líneas abajo):
 
-```{r salud_write}
+```{r}
+#| label: salud_sf_write
+#| message: false
+#| warning: false
 dir.create(here('data/processed/salud'))
 
 st_write(salud_sf,
@@ -144,12 +161,14 @@ Una forma simple y directa de visualizar datos espaciales es utilizando la funci
 Si usamos `plot()` directamente sobre el objeto `sf`, se generarán múltiples paneles, uno por cada variable del conjunto:
 
 ```{r}
+#| label: salud_sf_plot_base
 plot(salud_sf)
 ```
 
 Podemos seleccionar una sola columna (atributo) utilizando el nombre de la variable. Por ejemplo, si queremos graficar únicamente la variable `Dep`, usamos:
 
-```{r salud_sf_plot_Dep}
+```{r}
+#| label: salud_sf_plot_Dep
 plot(salud_sf[,'Dep'])
 ```
 
@@ -157,11 +176,15 @@ Esto mostrará un mapa donde las geometrías se colorean según los valores de l
 
 También podemos filtrar por fila, es decir, seleccionar una sola entidad geográfica (por ejemplo, un solo punto, línea o polígono) y graficarla:
 
-```{r salud_sf_plot_raw}
-plot(salud_sf[355,'Dep'])
+```{r}
+#| label: salud_sf_plot_raw
+#| fig-width: 2
+#| fig-height: 2
+
+plot(salud_sf[355, 'Dep'])
 ```
 
-En este caso se visualiza solo el punto ubicado en la posición 355 del dataframe. Este método cobra más relevancia cunado queremos explorar polígonos, por ejemplo para ver la forma de algún radio censal o barrio.
+En este caso se visualiza solo el punto ubicado en la posición 355 del dataframe. Este método cobra más relevancia cunado queremos explorar polígonos, por ejemplo para ver la forma de algún radio censal o barrio. \vspace{2em}
 
 **Capa:** Establecimientos educativos.
 
@@ -175,10 +198,29 @@ El **formato `.geojson`** es una extensión del formato JSON especialmente dise�
 
 A diferencia del `.csv`, los archivos `.geojson` **ya contienen información geométrica estructurada**, y pueden abrirse directamente como objetos `sf` usando `st_read()`, sin necesidad de especificar columnas de coordenadas.
 
-```{r st_read_escuelas}
+```{r}
+#| label: st_read_escuelas
 escuelas <-
   st_read(here("data/raw/educacion/establecimientos-educativos-30062025.geojson"))
 ```
+
+En este caso, al abrir el archivo, la función st_read() nos devuelve un mensaje informando:
+
+-   `Reading layer 'establecimientos-educativos-fecha'`: está leyendo la capa con ese nombre. A veces los archivos GeoJSON incluyen un nombre de capa interno que puede no coincidir exactamente con el nombre del archivo.
+
+-   `from data source`: indica la ruta completa al archivo que se está leyendo.
+
+-   `using driver 'GeoJSON'`: está utilizando el driver adecuado para leer archivos en formato GeoJSON.
+
+-   `Simple feature collection with 21568 features and 33 fields`: el archivo contiene una colección de objetos espaciales simples (sf) con 21.568 elementos (features), cada uno con 33 atributos (campos o columnas).
+
+-   `Geometry type: POINT`: la geometría de las entidades es de tipo punto (es decir, cada establecimiento educativo está representado por una coordenada geográfica).
+
+-   `Dimension: XY`: las geometrías están en dos dimensiones: longitud (X) y latitud (Y). No incluye información de altitud ni medidas adicionales.
+
+-   `Bounding box: xmin: -63.38269 ymin: -40.8115 xmax: -56.67471 ymax: -33.29664`: define la extensión espacial del conjunto de datos, es decir, el rectángulo que contiene a todos los puntos.
+
+-   `Geodetic CRS: WGS 84`: indica que el sistema de referencia de coordenadas (CRS) es WGS 84, un sistema geodésico estándar (EPSG:4326), utilizado globalmente, por ejemplo, en GPS y servicios como Google Maps.
 
 ### Líneas
 
@@ -202,8 +244,9 @@ Sin embargo, la cobertura y el nivel de detalle pueden variar según la región 
 En R, una de las formas más comunes de acceder a OSM es a través del paquete osmdata, que permite realizar consultas a la API y descargar datos vectoriales directamente como objetos sf. Ver catalogo: <https://wiki.openstreetmap.org/wiki/Map_features>
 :::
 
-```{r avenidas}
+```{r}
 #| echo: true
+#| label: avenidas
 avenidas <-
   st_read(here("data/raw/OSM/avenidas_osm.gpkg"))
 ```
@@ -236,18 +279,31 @@ Además, pueden aparecer archivos adicionales:
 
 -   .`qpj`: una variante moderna del .prj, usada por algunos programas como QGIS.
 
-Para trabajar correctamente con un shapefile, es importante mantener juntos todos estos archivos. El archivo `.shp` por sí solo no es suficiente.
+Para trabajar correctamente con un shapefile, es importante mantener juntos todos estos archivos (el archivo `.shp` por sí solo no es suficiente). Se recomienda guardarlos en una subcarpeta específica.
 
 En este caso, se trata de la capa de radios censales del CNPHV 2022. Representa unidades geográficas en las que se organizan los operativos censales, y es una capa clave para análisis sociodemográficos.
 
-```{r radios}
+```{r}
+#| label: radios
 radios <- 
   st_read(here("data/raw/censo/radios_censales/Radios 2022 v2025-1.shp"))
 ```
 
-```{r radios_plot}
+Ploteamos el primer elemento de la primera columna:
+
+```{r}
+#| radios_plot
 plot(radios[1,1])
 ```
+
+Si queremos conocer el sistema de referencia de coordenadas (CRS) de una capa espacial, podemos utilizar la función `st_crs()`. Esta función nos mostrará la información completa del CRS asociado al objeto. Dentro del mensaje que devuelve, al final encontraremos una línea como: `ID["EPSG",3857]]`. Esto indica que el sistema de referencia corresponde al EPSG:3857, conocido como WGS 84 / Pseudo-Mercator. Podemos consultar más detalles sobre este sistema en el sitio oficial: <https://epsg.io/3857>, un sitio web que ofrece una interfaz accesible para explorar el contenido del registro EPSG, basado en los datos oficiales mantenidos por el IOGP (International Association of Oil & Gas Producers).
+
+```{r}
+#| label: radios_crs
+st_crs(radios)
+```
+
+\vspace{2em}
 
 **Capa:** Barrios populares (RENABAP)
 
