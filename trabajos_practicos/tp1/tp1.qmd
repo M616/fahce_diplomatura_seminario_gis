@@ -61,6 +61,8 @@ library(mapview)     # Mapas interactivos
 library(here)        # Para manejar el path
 library(janitor)     # Para limpieza de datos
 library(ggspatial)   # Para insertar rosa de los vientos y barra de                         escala en los mapas
+library(viridis)     # Para rampa de colores
+library(viridisLite) # Para rampa de colores
 ```
 
 En los Sistemas de Información Geográfica los datos vectoriales se utilizan para representar entidades geográficas mediante tres tipos básicos de geometrías:
@@ -327,7 +329,7 @@ renabap <-
 
 La función `mapview()` (de la librería homónima) permite explorar datos espaciales de forma rápida e interactiva. A continuación se muestran algunos ejemplos con las capas cargadas:
 
-### 1.  Visualización básica (por defecto):
+### 1. Visualización básica (por defecto):
 
 ```{r}
 #| label: salud_mapview
@@ -339,16 +341,17 @@ mapview(salud_sf)
 
 ![](images/tp1_01_salud_sf.jpg){width="604"}
 
-### 2. Colorear por variable categórica (automático):
+### 2. Mapas temáticos:
 
-```{r}
-#| label: mapview_zcol
-#| echo: true
-#| eval: false
-mapview(escuelas, zcol = "sector")
-```
+Cuando tenemos información estadística o de otra índole asociada a una ubicación geográfica, una excelente manera de visualizarla es a través de un mapa temático. Este tipo de mapa nos permite ver dónde ocurre algo, cómo se distribuye en el espacio y con qué intensidad o categoría.
 
-3.  Aplicar filtro y personalizar colores por variable categórica:
+La clave está en combinar datos espaciales (por ejemplo: partidos, provincias, regiones) con  valores o categorías asociados a esas unidades.
+Dependiendo del nivel de medición de la variable podremos representarla gráficamente de diversos modos.
+En el caso de las variables cualitativas, que refieren a categorías sin un orden numérico, lo habitual es utilizar colores bien diferenciados para cada una de ellas. Así, a cada una se le asigna un color distinto, sin usar degradados porque no hay una relación de “más” o “menos” entre esas categorías.
+
+En cambio, cuando la variable es numérica y tiene un sentido de magnitud —es decir, valores que van de menor a mayor— lo más habitual es representarla mediante un mapa cloroplético. Este tipo de mapa colorea las áreas geográficas según los valores de la variable numérica, usando gradientes de color que permiten visualizar cómo varía la cantidad o intensidad a lo largo del territorio.
+
+#### Visualización de variables categóricas:
 
 ```{r}
 #| label: mapview_zcol_col.regions
@@ -377,8 +380,19 @@ mapview(
 
 
 ```{r}
-library(viridis)
-library(viridisLite)
+#| label: mapview_zcol
+#| echo: true
+#| eval: false
+mapview(escuelas, zcol = "sector")
+```
+
+#### Mapas cloropléticos (variables numéricas)
+
+```{r}
+#| label: map_view_continua
+#| include: false
+#| eval: false
+
 renabap |> 
   filter(departamento == 'La Plata') |> 
   mapview(zcol = 'cantidad_familias_aproximada',
@@ -389,8 +403,7 @@ renabap |>
 
 ```
 
-
-### 4.  Superposición simple de capas
+### 3. Superposición simple de capas
 
 ```{r}
 #| label:  mapview_append
@@ -399,7 +412,7 @@ renabap |>
 mapview(renabap) + mapview(salud_sf)
 ```
 
-### 5.  Superposición con estilos personalizados:
+#### Superposición con estilos personalizados:
 
 ```{r}
 #| label: mapview_custom_append
