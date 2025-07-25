@@ -47,13 +47,13 @@ Este trabajo se propone presentar cómo son tratados los **objetos espaciales ve
 
 ------------------------------------------------------------------------
 
-## Ejercitación 1. Tipo de Vectores. Carga y exploración de datos
+Antes de empezar cargamos las librerías necesarias:
 
 ```{r}
 #| label: setup
 #| warning: false
 #| message: false
-#| echo: false
+#| echo: true
 
 library(tidyverse)   # Manipulación de datos  
 library(sf)          # Datos espaciales  
@@ -64,6 +64,8 @@ library(ggspatial)   # Para insertar rosa de los vientos y barra de             
 library(viridis)     # Para rampa de colores
 library(viridisLite) # Para rampa de colores
 ```
+
+## Ejercitación 1. Tipo de Vectores. Carga y exploración de datos
 
 En los Sistemas de Información Geográfica los datos vectoriales se utilizan para representar entidades geográficas mediante tres tipos básicos de geometrías:
 
@@ -87,15 +89,7 @@ Una vez abiertos, los datos pueden explorarse visualmente de dos formas principa
 
     -   **Con `ggplot2` y `geom_sf()`:** permite generar mapas reproducibles y de alta calidad, con mayor control sobre la estética, las escalas, los temas y la combinación con otros tipos de gráficos. Este enfoque es especialmente adecuado para informes formales, publicaciones científicas o presentaciones, y se desarrollará más adelante en el documento.
 
-A continuación, se presentan ejemplos concretos de cada tipo de geometría (puntos, líneas y polígonos), utilizando fuentes de datos abiertas provistas por organismos oficiales (Gobierno de la Provincia de Buenos Aires, INDEC, RENABAP, OpenStreetMap, entre otros). Los datos provienen de distintos formatos geográficos (como .`csv`, `.kml`, .`shp` y .`gpkg`) y son abiertos en R mediante las funciones `st_read()` (cuando el archivo ya contiene geometría) o `st_as_sf()` (cuando la geometría se construye a partir de coordenadas). Se abordan algunas herramientas de exploración gráfica como `plot()` y `mapview()`.
-
-### Puntos
-
-**Capa:** Establecimientos de Salud Públicos.
-
-**Fuente:** Ministerio de Salud de la Provincia de Buenos Aires. ( A través de Portal de Datos Abiertos de la Provincia de Buenos Aires).
-
-**Link:** <https://catalogo.datos.gba.gob.ar/dataset/establecimientos-salud/archivo/c52f9497-9eab-4ecd-a382-b4e4c6033a02>
+A continuación, se presentan ejemplos concretos de cada tipo de geometría (puntos, líneas y polígonos), utilizando fuentes de datos abiertas provistas por organismos oficiales (Gobierno de la Provincia de Buenos Aires, INDEC, RENABAP, OpenStreetMap, entre otros). Los datos provienen de distintos formatos geográficos (como .`csv`, `.geojson`, .`shp` y .`gpkg`) y son abiertos en R mediante las funciones `st_read()` (cuando el archivo ya contiene geometría) o `st_as_sf()` (cuando la geometría se construye a partir de coordenadas). Se abordan algunas herramientas de exploración gráfica como `plot()` y `mapview()`.
 
 ::: callout-caution
 #### Descarga de archivos
@@ -104,6 +98,14 @@ Una vez descargados los archivos en la carpeta de descargas, deberán ser movido
 
 En la subcarpeta `data/processed/`almacenaremos nuestros datos ya procesados.
 :::
+
+### Puntos
+
+**Capa:** Establecimientos de Salud Públicos.
+
+**Fuente:** Ministerio de Salud de la Provincia de Buenos Aires. ( A través de Portal de Datos Abiertos de la Provincia de Buenos Aires).
+
+**Link:** <https://catalogo.datos.gba.gob.ar/dataset/establecimientos-salud/archivo/c52f9497-9eab-4ecd-a382-b4e4c6033a02>
 
 **Formato:** `.csv` (valores separados por comas)
 
@@ -186,7 +188,9 @@ También podemos filtrar por fila, es decir, seleccionar una sola entidad geogr�
 plot(salud_sf[355, 'Dep'])
 ```
 
-En este caso se visualiza solo el punto ubicado en la posición 355 del dataframe. Este método cobra más relevancia cunado queremos explorar polígonos, por ejemplo para ver la forma de algún radio censal o barrio. \vspace{2em}
+En este caso se visualiza solo el punto ubicado en la posición 355 del dataframe. Este método cobra más relevancia cunado queremos explorar polígonos, por ejemplo para ver la forma de algún radio censal o barrio.
+
+------------------------------------------------------------------------
 
 **Capa:** Establecimientos educativos.
 
@@ -305,7 +309,7 @@ Si queremos conocer el sistema de referencia de coordenadas (CRS) de una capa es
 st_crs(radios)
 ```
 
-\vspace{2em}
+------------------------------------------------------------------------
 
 **Capa:** Barrios populares (RENABAP)
 
@@ -325,11 +329,13 @@ renabap <-
   st_read(here("data/raw/renabap/renabap-datos-barrios-gpkg"))
 ```
 
-## Ejercitación2. Visualización interactiva con `mapview()`
+## Ejercitación 2. Visualización interactiva con `mapview()`
 
-La función `mapview()` (de la librería homónima) permite explorar datos espaciales de forma rápida e interactiva. A continuación se muestran algunos ejemplos con las capas cargadas:
+La función `mapview()` (perteneciente a la librería del mismo nombre) es utilizada para explorar datos espaciales de forma rápida e interactiva. Una de las principales ventajas que se reconocen en mapview es su simplicidad: con una sola línea de código los objetos espaciales pueden ser visualizados directamente en un visor dinámico, ya sean puntos, líneas o polígonos. No es necesario que se configure un entorno complejo ni que se escriban muchas líneas de código; basta con que el objeto espacial sea cargado, y el paquete se encargará de mostrarlo sobre un mapa de fondo con herramientas de zoom y control de capas incluidas de manera automática. Los mapas generados son interactivos: se permite hacer zoom, desplazarse por el mapa, hacer clic sobre los elementos para que sus atributos sean mostrados, y alternar entre distintas capas si hay más de una cargada. Por estas razones, la herramienta es ampliamente utilizada en la exploración preliminar de datos geográficos, especialmente cuando se trabaja con grandes volúmenes de información o cuando las geometrías necesitan ser verificadas.
 
-### 1. Visualización básica (por defecto):
+Cuando `mapview()` es ejecutada desde un script o desde un chunk de R Markdown el mapa es abierto automáticamente en el visor interactivo de RStudio, según el entorno en que se esté trabajando. Si se está utilizando RStudio, el mapa será visualizado en la pestaña "Viewer"; si en cambio se trabaja con un documento R Markdown que se renderiza a HTML, el mapa será incrustado en el informe final. A continuación se presentan algunos ejemplos con las capas que han sido cargadas.
+
+### 1. Visualización básica
 
 ```{r}
 #| label: salud_mapview
@@ -341,17 +347,22 @@ mapview(salud_sf)
 
 ![](images/tp1_01_salud_sf.jpg){width="604"}
 
-### 2. Mapas temáticos:
+### 2. Mapas temáticos
 
 Cuando tenemos información estadística o de otra índole asociada a una ubicación geográfica, una excelente manera de visualizarla es a través de un mapa temático. Este tipo de mapa nos permite ver dónde ocurre algo, cómo se distribuye en el espacio y con qué intensidad o categoría.
 
-La clave está en combinar datos espaciales (por ejemplo: partidos, provincias, regiones) con  valores o categorías asociados a esas unidades.
-Dependiendo del nivel de medición de la variable podremos representarla gráficamente de diversos modos.
-En el caso de las variables cualitativas, que refieren a categorías sin un orden numérico, lo habitual es utilizar colores bien diferenciados para cada una de ellas. Así, a cada una se le asigna un color distinto, sin usar degradados porque no hay una relación de “más” o “menos” entre esas categorías.
+La clave está en combinar datos espaciales (por ejemplo: partidos, provincias, regiones) con valores o categorías asociados a esas unidades. Dependiendo del nivel de medición de la variable podremos representarla gráficamente de diversos modos. En el caso de las variables cualitativas, que refieren a categorías sin un orden numérico, lo habitual es utilizar colores bien diferenciados para cada una de ellas. Así, a cada una se le asigna un color distinto, sin usar degradados porque no hay una relación de “más” o “menos” entre esas categorías.
 
 En cambio, cuando la variable es numérica y tiene un sentido de magnitud —es decir, valores que van de menor a mayor— lo más habitual es representarla mediante un mapa cloroplético. Este tipo de mapa colorea las áreas geográficas según los valores de la variable numérica, usando gradientes de color que permiten visualizar cómo varía la cantidad o intensidad a lo largo del territorio.
 
-#### Visualización de variables categóricas:
+#### Visualización de variables categóricas
+
+```{r}
+#| label: mapview_zcol
+#| echo: true
+#| eval: false
+mapview(escuelas, zcol = "sector")
+```
 
 ```{r}
 #| label: mapview_zcol_col.regions
@@ -366,31 +377,17 @@ escuelas |>
           col.regions = cols_sector,
           label = 'establecimiento_nombre',
           alpha = 0.5)
-
-mapview(
-  escuelas,
-  zcol = "sector",
-  col.regions = cols_sector,
-  layer.name = "Escuelas por sector"
-)
-
 ```
 
 ![](images/tp1_02_escuelas_ensenada.jpg)
 
-
-```{r}
-#| label: mapview_zcol
-#| echo: true
-#| eval: false
-mapview(escuelas, zcol = "sector")
-```
-
 #### Mapas cloropléticos (variables numéricas)
+
+En este caso haremos un mapa cloroplético a partir de la capa `RENABAP` y la variable `cantidad_familias_aproximada`
 
 ```{r}
 #| label: map_view_continua
-#| include: false
+#| echo: true
 #| eval: false
 
 renabap |> 
@@ -412,7 +409,7 @@ renabap |>
 mapview(renabap) + mapview(salud_sf)
 ```
 
-#### Superposición con estilos personalizados:
+#### Superposición con estilos personalizados
 
 ```{r}
 #| label: mapview_custom_append
@@ -435,7 +432,7 @@ mapview(
 
 Se debe tener en cuenta que `mapview()` no se renderiza en documentos PDF, pero sí puede visualizarse en HTML o directamente desde RStudio. Además, al presionar el botón Export en la visualización interactiva, se puede exportar la visualización en HTML.
 
-## Geoprocesos
+## Ejercitación 3. Geoprocesos
 
 ```{r}
 #| label: st_use_sf2
@@ -687,10 +684,6 @@ La función `st_area()` calcula el **área** de geometrías tipo polígono. Devu
 Los procesos de geoprocesamiento que se presentaron no son exclusivos de R ni del paquete `sf`, sino que forman parte del conjunto de herramientas fundamentales en cualquier Sistema de Información Geográfica (GIS). Estas operaciones son compartidas y utilizadas en otros lenguajes como Python (con librerías como `geopandas` y `shapely`) o en software de escritorio como QGIS o ArcGIS. La lógica subyacente es común a todos los entornos.
 :::
 
-------------------------------------------------------------------------
-
-------------------------------------------------------------------------
-
 ```{r}
 #| eval: false
 #| include: false
@@ -712,11 +705,15 @@ ggplot() +
 ```
 
 ```{r}
+#| include: false
+#| eval: false
 renabap_pba <- 
   renabap %>% filter(provincia == 'Buenos Aires')
 ```
 
 ```{r}
+#| include: false
+#| eval: false
 ggplot() +
   geom_sf(data = renabap_pba, fill = "tomato", color = "darkred", alpha = 0.5) +
   labs(title = "Barrios Populares (RENABAP)",
