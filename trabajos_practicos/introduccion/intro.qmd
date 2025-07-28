@@ -96,23 +96,6 @@ en un sistema de coordenadas. Sin un sistema de referencia espacial
 común no sería posible superponer capas, calcular distancias reales o
 relacionar información proveniente de distintas fuentes.
 
-## Proyecciones cartográficas
-
-Al representar la Tierra en un plano, inevitablemente se introduce
-**distorsión**. Las proyecciones pueden deformar:
-
--   Las **formas**
--   Las **superficies**
--   Las **distancias**
--   Los **ángulos**
-
-![Distorsión de área. Fuente:
-thetruesize.com](images/distorsion_mercator1.jpg){width="403"}
-
-Cada proyección intenta minimizar alguno de estos aspectos, pero
-**ninguna puede conservarlos todos a la vez**. Por eso es clave elegir
-la proyección adecuada según el objetivo del análisis.
-
 ## Sistemas de Referencia de Coordenadas (SRC)
 
 La posición geográfica de los objetos se expresa a través de un
@@ -129,6 +112,23 @@ principales:
 La elección del SRC depende del tipo de análisis. Trabajar en un SRC
 incorrecto puede generar errores en cálculos de distancias, áreas o
 relaciones espaciales.
+
+## Proyecciones cartográficas
+
+Al representar la Tierra en un plano, inevitablemente se introduce
+**distorsión**. Las proyecciones pueden deformar:
+
+-   Las **formas**
+-   Las **superficies**
+-   Las **distancias**
+-   Los **ángulos**
+
+![Distorsión de área. Fuente:
+thetruesize.com](images/distorsion_mercator1.jpg){width="403"}
+
+Cada proyección intenta minimizar alguno de estos aspectos, pero
+**ninguna puede conservarlos todos a la vez**. Por eso es clave elegir
+la proyección adecuada según el objetivo del análisis.
 
 ::: callout-important
 #### Sistemas de coordenadas en Argentina: POSGAR

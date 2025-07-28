@@ -394,9 +394,26 @@ renabap |>
   filter(departamento == 'La Plata') |> 
   mapview(zcol = 'cantidad_familias_aproximada',
           layer.name = 'cantidad familias',
+          col.regions = viridis)
+          
+
+```
+
+![](images/tp1_03_renabap_lp.jpg)
+
+```{r}
+#| label: map_view_continua_custom
+#| echo: false
+#| eval: false
+
+renabap |> 
+  filter(departamento == 'La Plata') |> 
+  mapview(zcol = 'cantidad_familias_aproximada',
+          layer.name = 'cantidad familias',
           #col.regions = viridisLite::magma(n= 13, direction = -1))#, 
           col.regions = viridis)
           #at = quantile(renabap$cantidad_familias_aproximada, probs = seq(0, 1, 0.25))  )
+
 
 ```
 
