@@ -22,18 +22,24 @@ El ejercicio se desarrolla en el partido de **La Plata**, y se trabajará exclus
 
 ------------------------------------------------------------------------
 
-#### Objetivo general
+## Paso 1: Carga y preparación de datos censales
 
-Aprender a **manipular datos geográficos vectoriales en R**, integrando información territorial con variables sociodemográficas para el análisis de problemáticas sociales.
-
-#### Objetivos específicos
-
--   Comprender el formato y la estructura de los **datos vectoriales** en R (capas de puntos y polígonos).
--   Incorporar y vincular información **censal georreferenciada**, combinando geometría espacial con atributos estadísticos.
--   Medir la **distancia desde cada radio censal** a la escuela secundaria más cercana, como estimación de accesibilidad territorial.
--   Incorporar el **clima educativo del hogar** como variable contextual proveniente de REDATAM / INDEC.
--   Visualizar **desigualdades territoriales** mediante mapas temáticos.
--   Construir un **índice exploratorio** que combine accesibilidad y condiciones educativas como insumo para el análisis descriptivo.
+```{r}
+#| label: setup
+#| warning: false
+#| message: false
+#| echo: true
+library(tidyverse)   # Manipulación de datos  
+library(sf)          # Datos espaciales  
+library(mapview)     # Mapas interactivos  
+library(units)       # Manejo de distancias (metros/km)  
+library(nngeo)       # Para cálculos de distancia más cercana  
+library(here)        # Para manejar el path
+library(janitor)     # Para limpieza de datos
+library(ggspatial)
+library(maptiles)
+library(prettymapr)
+```
 
 ::: callout-important
 ##### ¿Por qué trabajar con datos del Censo?
@@ -47,22 +53,7 @@ En contextos donde otras fuentes tienen baja cobertura o disponibilidad (como re
 -   **Variables clave para ciencias sociales**: nivel educativo, hábitat, acceso a servicios, características de los hogares, actividad económica, entre otras.
 :::
 
-------------------------------------------------------------------------
 
-## Paso 1: Carga y preparación de datos censales
-
-```{r setup, warning=FALSE, echo=FALSE, message=FALSE}
-library(tidyverse)   # Manipulación de datos  
-library(sf)          # Datos espaciales  
-library(mapview)     # Mapas interactivos  
-library(units)       # Manejo de distancias (metros/km)  
-library(nngeo)       # Para cálculos de distancia más cercana  
-library(here)        # Para manejar el path
-library(janitor)     # Para limpieza de datos
-library(ggspatial)
-library(maptiles)
-library(prettymapr)
-```
 
 ::: callout-warning
 #### Enlaces útiles

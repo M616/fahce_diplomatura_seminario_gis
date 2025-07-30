@@ -483,10 +483,15 @@ El geoprocesamiento vectorial permite:
 
 La función `st_join()` permite realizar una **unión espacial de atributos** entre dos capas vectoriales. Es el equivalente espacial de un "left join" de `dplyr`, pero en lugar de emparejar filas por un valor común, las empareja por su **relación espacial** (como intersección, inclusión, contención, etc.). Esta herramienta es especialmente útil cuando queremos **agregar información de una capa a otra** en función de cómo se relacionan espacialmente.
 
+::: callout-note
+Ojo... st_join funciona con el argumento (x,y, join= st_intersects/etc). y st_filter funciona con .predicate= st_intersects)
+:::
+
 Sintaxis básica
 
 ```{r}
 #| label: st_intersects
+#| echo: true
 #| eval: false
 #| include: false
 st_join(x, y, join = st_intersects)
