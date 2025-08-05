@@ -472,7 +472,6 @@ El geoprocesamiento vectorial permite:
 |------------------------|------------------------|------------------------|
 | `st_filter()` | Filtra objetos de una capa en función de su relación espacial con otra capa. No agrega atributos, solo selecciona. | `st_filter(puntos, poligono, .predicate = st_within)` |
 | `st_buffer()` | Genera un área de influencia o zona de proximidad alrededor de una geometría. Muy útil para analizar cobertura o impacto. | `st_buffer(salud_sf, dist = 500)` |
-| `st_intersection()` | Devuelve la geometría que resulta de la superposición espacial entre dos capas. | `st_intersection(capa1, capa2)` |
 | `st_union()` | Une múltiples geometrías en una sola, útil para agrupar o simplificar capas. | `st_union(capa)` |
 | `st_difference()` | Calcula la diferencia entre dos geometrías, eliminando la parte común. | `st_difference(capa1, capa2)` |
 | `st_centroid()` | Calcula el centro geométrico de cada objeto. Útil para representar polígonos como puntos. | `st_centroid(poligonos)` |
@@ -484,10 +483,20 @@ El geoprocesamiento vectorial permite:
 La función `st_join()` permite realizar una **unión espacial de atributos** entre dos capas vectoriales. Es el equivalente espacial de un "left join" de `dplyr`, pero en lugar de emparejar filas por un valor común, las empareja por su **relación espacial** (como intersección, inclusión, contención, etc.). Esta herramienta es especialmente útil cuando queremos **agregar información de una capa a otra** en función de cómo se relacionan espacialmente.
 
 ::: callout-note
-Ojo... st_join funciona con el argumento (x,y, join= st_intersects/etc). y st_filter funciona con .predicate= st_intersects)
-:::
+## st_join() y st_filter()
 
-Sintaxis básica
+La función **`st_join()`** utiliza el argumento **`join =`** para definir la relación espacial entre los objetos. Por ejemplo:
+
+`st_join(x, y, join = st_intersects)`
+
+En este caso, se realiza una **unión espacial** entre `x` y `y` usando `st_intersects()` como criterio (otras opciones posibles: `st_within`, `st_contains`, etc.).
+
+En cambio, la función **`st_filter()`** utiliza el argumento **`.predicate =`** para aplicar la relación espacial. Por ejemplo:
+
+`st_filter(x, y, .predicate = st_intersects)`
+
+Esto devuelve únicamente las geometrías de `x` que cumplen con el predicado especificado en relación a `y`.
+:::
 
 ```{r}
 #| label: st_intersects
