@@ -56,12 +56,12 @@ archivo_destino <- file.path(dir_salud, "establecimientos_salud_publicos-2025.cs
 descargar_archivo(url_salud, archivo_destino)
 
 
-# 5. DESCARGA DE DATOS DE SALUD ------------------------------------------------
+# 5. DESCARGA DE DATOS DE EDUCACION ------------------------------------------------
 
 dir_educacion <- here("data/raw/educacion")
 if (!dir.exists(dir_educacion)) dir.create(dir_educacion, recursive = TRUE)
 
-url_educacion <- "https://catalogo.datos.gba.gob.ar/dataset/4becb4b7-0a21-4fef-8f2c-30df7f345a01/resource/08a49256-620d-4d75-9a40-6f57df3be830/download/establecimientos-educativos-09062025.zip"
+url_educacion <- "https://catalogo.datos.gba.gob.ar/dataset/4becb4b7-0a21-4fef-8f2c-30df7f345a01/resource/08a49256-620d-4d75-9a40-6f57df3be830/download/establecimientos-educativos-28072025.zip"
 destino_educacion <- here("data/raw/educacion", basename(url_educacion))
 
 descargar_archivo(url_educacion, destino_educacion)

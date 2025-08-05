@@ -86,7 +86,7 @@ paquete `terra` permite leer, procesar y analizar datos raster de manera
 flexible y eficiente, integrando herramientas para análisis espacial,
 reproyección, cálculos sobre celdas, y visualización.
 
-[![Fuente: OVS](images/intro_raster.jpg){fig-align="center"
+[![Distancia a Barrios Cerrados (en metros). Fuente: OVS](images/intro_raster.jpg){fig-align="center"
 width="500"}](https://observatoriosuelo.gba.gob.ar/)
 
 Tanto los datos vectoriales como los raster están referidos a
@@ -96,10 +96,10 @@ en un sistema de coordenadas. Sin un sistema de referencia espacial
 común no sería posible superponer capas, calcular distancias reales o
 relacionar información proveniente de distintas fuentes.
 
-## Sistemas de Referencia de Coordenadas (SRC)
+## Sistemas de Referencia de Coordenadas (CRS)
 
 La posición geográfica de los objetos se expresa a través de un
-**Sistema de Referencia de Coordenadas (SRC)**. Existen dos tipos
+**Sistema de Referencia de Coordenadas CRS)**. Existen dos tipos
 principales:
 
 -   **Geográficos**: usan coordenadas angulares (grados de latitud y
@@ -108,20 +108,13 @@ principales:
 -   **Proyectados**: convierten la superficie curva de la Tierra en un
     plano, utilizando coordenadas cartesianas (X, Y, en metros). Se
     prefieren para escalas más detalladas, como ciudades o barrios.
-
-La elección del SRC depende del tipo de análisis. Trabajar en un SRC
-incorrecto puede generar errores en cálculos de distancias, áreas o
-relaciones espaciales.
-
-## Proyecciones cartográficas
-
-Al representar la Tierra en un plano, inevitablemente se introduce
-**distorsión**. Las proyecciones pueden deformar:
-
--   Las **formas**
--   Las **superficies**
--   Las **distancias**
--   Los **ángulos**
+    
+    Al representar la Tierra en un plano, inevitablemente se introduce
+    **distorsión**. Las proyecciones pueden deformar:
+    -   Las **formas**
+    -   Las **superficies**
+    -   Las **distancias**
+    -   Los **ángulos**
 
 ![Distorsión de área. Fuente:
 thetruesize.com](images/distorsion_mercator1.jpg){width="403"}
@@ -129,6 +122,10 @@ thetruesize.com](images/distorsion_mercator1.jpg){width="403"}
 Cada proyección intenta minimizar alguno de estos aspectos, pero
 **ninguna puede conservarlos todos a la vez**. Por eso es clave elegir
 la proyección adecuada según el objetivo del análisis.
+
+La elección del SRC depende del tipo de análisis. Trabajar en un SRC
+incorrecto puede generar errores en cálculos de distancias, áreas o
+relaciones espaciales.
 
 ::: callout-important
 #### Sistemas de coordenadas en Argentina: POSGAR
@@ -158,14 +155,8 @@ georreferenciación y el análisis espacial:
 -   Utilizar el **sistema de referencia de coordenadas (CRS)** adecuado
     a la zona. La provincia de Buenos Aires se encuentra en la **faja
     5**, que en POSGAR 2007 corresponde al código **EPSG:5347**.
-
--   Asegurarse de que **todos los datasets estén en el mismo CRS**, para
-    evitar problemas en la visualización o errores en cálculos de
-    distancia, área o relaciones espaciales.
-
--   Podés consultar información oficial, acceder a servicios de
-    georreferenciación y descargar capas geográficas desde el sitio del
-    **Instituto Geográfico Nacional (IGN)**: <https://www.ign.gob.ar>
+    
+Podés consultar información oficial, acceder a servicios de    georreferenciación y descargar capas geográficas desde el sitio del    **Instituto Geográfico Nacional (IGN)**: <https://www.ign.gob.ar>
 :::
 
 ## Consideraciones para trabajar en un SIG

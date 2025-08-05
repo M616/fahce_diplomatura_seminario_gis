@@ -87,7 +87,7 @@ Una vez abiertos, los datos pueden explorarse visualmente de dos formas principa
 
     -   **Con `plot()` (R base):** ofrece una forma rápida y sencilla de visualizar objetos `sf`. Es útil para hacer inspecciones básicas de los datos espaciales, como revisar geometrías, identificar errores topológicos o visualizar atributos de forma individual. No requiere paquetes adicionales.
 
-    -   **Con `ggplot2` y `geom_sf()`:** permite generar mapas reproducibles y de alta calidad, con mayor control sobre la estética, las escalas, los temas y la combinación con otros tipos de gráficos. Este enfoque es especialmente adecuado para informes formales, publicaciones científicas o presentaciones, y se desarrollará más adelante en el documento.
+    -   **Con `ggplot2` y `geom_sf()`:** permite generar mapas reproducibles y de alta calidad, con mayor control sobre la estética, las escalas, los temas y la combinación con otros tipos de gráficos. Este enfoque es especialmente adecuado para informes formales, publicaciones científicas o presentaciones, y se desarrollará más adelante.
 
 A continuación, se presentan ejemplos concretos de cada tipo de geometría (puntos, líneas y polígonos), utilizando fuentes de datos abiertas provistas por organismos oficiales (Gobierno de la Provincia de Buenos Aires, INDEC, RENABAP, OpenStreetMap, entre otros). Los datos provienen de distintos formatos geográficos (como .`csv`, `.geojson`, .`shp` y .`gpkg`) y son abiertos en R mediante las funciones `st_read()` (cuando el archivo ya contiene geometría) o `st_as_sf()` (cuando la geometría se construye a partir de coordenadas). Se abordan algunas herramientas de exploración gráfica como `plot()` y `mapview()`.
 
@@ -207,7 +207,7 @@ A diferencia del `.csv`, los archivos `.geojson` **ya contienen información geo
 ```{r}
 #| label: st_read_escuelas
 escuelas <-
-  st_read(here("data/raw/educacion/establecimientos-educativos-30062025.geojson"))
+  st_read(here("data/raw/educacion/establecimientos-educativos-28072025.geojson"))
 ```
 
 En este caso, al abrir el archivo, la función st_read() nos devuelve un mensaje informando:
@@ -703,7 +703,7 @@ La función `st_area()` calcula el **área** de geometrías tipo polígono. Devu
 ::: callout-important
 #### Importante
 
-Los procesos de geoprocesamiento que se presentaron no son exclusivos de R ni del paquete `sf`, sino que forman parte del conjunto de herramientas fundamentales en cualquier Sistema de Información Geográfica (GIS). Estas operaciones son compartidas y utilizadas en otros lenguajes como Python (con librerías como `geopandas` y `shapely`) o en software de escritorio como QGIS o ArcGIS. La lógica subyacente es común a todos los entornos.
+Los geoprocesos que se presentaron no son exclusivos de R ni del paquete `sf`, sino que forman parte del conjunto de herramientas fundamentales en cualquier Sistema de Información Geográfica (GIS). Estas operaciones son compartidas y utilizadas en otros lenguajes como Python (con librerías como `geopandas` y `shapely`) o en software de escritorio como QGIS o ArcGIS. La lógica subyacente es común a todos los entornos aunque con leves variaciones.
 :::
 
 ```{r}
