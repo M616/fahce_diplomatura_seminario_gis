@@ -594,8 +594,7 @@ Cuando deseamos identificar qué elementos de una capa espacial se encuentran de
 
 ```{r}
 st_filter(salud_sf,
-          renabap) %>% 
-  glimpse
+          renabap) 
 ```
 
 ### Áreas de influencia (buffer) con `st_buffer()`
@@ -643,16 +642,16 @@ En este nuevo objeto:
 Por estas razones, es importante inspeccionar el objeto resultante con funciones como `glimpse()`, `names()`, o `head()` para entender su estructura antes de usarlo en análisis posteriores.
 
 ```{r}
-salud_intersection %>% glimpse()
+salud_intersection |> glimpse()
 ```
 
 ```{r}
-  salud_intersection %>% 
+  salud_intersection |> 
   #st_drop_geometry() |>
-  group_by(id_renabap) %>% 
-  mutate(  cantidad = n() ) %>% 
-  ungroup() %>% 
-  arrange(id_renabap) %>% 
+  group_by(id_renabap) |> 
+  mutate(  cantidad = n() ) |> 
+  ungroup() |> 
+  arrange(id_renabap) |> 
   filter(id_renabap == 57) 
 ```
 
@@ -681,13 +680,13 @@ Es recomendable **fusionar previamente** las geometrías de `y` con `st_union()`
 
 ```{r}
 renabap_lp <- 
-  renabap %>% 
+  renabap |> 
   filter(departamento == 'La Plata') 
 
 salud_lp <-
-  salud_buffer %>% 
-  filter(nde == 'LA PLATA') %>% 
-  st_union() %>% 
+  salud_buffer |> 
+  filter(nde == 'LA PLATA') |> 
+  st_union() |> 
   st_as_sf()
 
 resultado <- st_difference(renabap_lp, salud_lp)
@@ -696,8 +695,8 @@ resultado <- st_difference(renabap_lp, salud_lp)
 ```{r}
 #| eval: false
 #| include: false
-renabap %>% 
-  filter(provincia == 'Buenos Aires') %>% 
+renabap |> 
+  filter(provincia == 'Buenos Aires') |> 
 st_difference(salud_buffer)
 ```
 
@@ -719,12 +718,12 @@ Los geoprocesos que se presentaron no son exclusivos de R ni del paquete `sf`, s
 #| eval: false
 #| include: false
 p <- 
-  salud_intersection %>% 
+  salud_intersection |> 
   #st_drop_geometry() |>
-  group_by(id_renabap) %>% 
-  mutate(  cantidad = n() ) %>% 
-  ungroup() %>% 
-  arrange(id_renabap) %>% 
+  group_by(id_renabap) |> 
+  mutate(  cantidad = n() ) |> 
+  ungroup() |> 
+  arrange(id_renabap) |> 
   filter(id_renabap == 57) 
 
 ggplot() +
@@ -739,7 +738,7 @@ ggplot() +
 #| include: false
 #| eval: false
 renabap_pba <- 
-  renabap %>% filter(provincia == 'Buenos Aires')
+  renabap |> filter(provincia == 'Buenos Aires')
 ```
 
 ```{r}
