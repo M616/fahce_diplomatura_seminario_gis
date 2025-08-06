@@ -33,7 +33,7 @@ walk(dirs, ~{
   }
 })
 
-# 4. FUNCIONES AUXILIARES ------------------------------------------------------
+# 3. FUNCIONES AUXILIARES ------------------------------------------------------
 descargar_archivo <- function(url, destino) {
   tryCatch({
     if (!file.exists(destino)) {
@@ -68,7 +68,7 @@ descargar_archivo(url_educacion, destino_educacion)
 unzip(destino_educacion, exdir = dir_educacion)
 file.remove(destino_educacion)
 
-# 5. DESCARGA RADIOS CENSALES (CONICET) ------------------------------------------------
+# 6. DESCARGA RADIOS CENSALES (CONICET) ------------------------------------------------
 
 url_censo <- "https://ri.conicet.gov.ar/bitstream/handle/11336/149711/RADIOS_2022_V2025-1.zip"
 dir_censo <- here("data/raw/censo/radios_censales")
@@ -81,7 +81,7 @@ unzip(destino_censo, exdir = dir_censo)
 file.remove(destino_censo)
 
 
-# 6. DESCARGA DATOS RENABAP ------------------------------------------------
+# 7. DESCARGA DATOS RENABAP ------------------------------------------------
 
 url_renabap <- "https://archivo.habitat.gob.ar/dataset/ssisu/renabap-datos-barrios-gpkg"
 dir_renabap <- here("data/raw/renabap")
@@ -91,7 +91,7 @@ destino_renabap <- here("data/raw/renabap", basename(url_renabap))
 
 descargar_archivo(url_renabap,destino_renabap)
 
-# 7. DESCARGA DATOS OSM (LA PLATA) ------------------------------------------------
+# 8. DESCARGA DATOS OSM (LA PLATA) ------------------------------------------------
 
 ##Patch para hacer andar curl::has_internet()
 
@@ -131,7 +131,7 @@ if (!is.null(avenidas$osm_lines)) {
   } 
 
 
-# 8. DESCARGA DE DATOS DEL OVS ------------------------------------------------
+# 9. DESCARGA DE DATOS DEL OVS ------------------------------------------------
 
 dir_ovs <- here("data/raw/ovs")
 if (!dir.exists(dir_ovs)) dir.create(dir_ovs, recursive = TRUE)

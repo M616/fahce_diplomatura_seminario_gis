@@ -53,8 +53,6 @@ En contextos donde otras fuentes tienen baja cobertura o disponibilidad (como re
 -   **Variables clave para ciencias sociales**: nivel educativo, hábitat, acceso a servicios, características de los hogares, actividad económica, entre otras.
 :::
 
-
-
 ::: callout-warning
 #### Enlaces útiles
 
@@ -88,7 +86,7 @@ Probamos con ggplot para graficar y ver los radios. En este caso los radios cens
 
 ```{r}
 radios <- 
-  radios %>% clean_names()
+  radios |> clean_names()
 
 radios_pba <- 
   radios |> filter(prov == '06')
@@ -167,7 +165,7 @@ ggplot() +
 ```
 
 ::: callout-warning
-Al trabajar con las geometrías del censo recordá que en la mayoría de las provincias no hay correspondencia entre los gobiernos locales (Municipios) y los departamentos (partidos en PBA, comunas en CABA). Ver (INDEC, 1999), (Vapñarsky, 2004). Podés descargar los metadatos del censo (inluídas las unidades geoestadísticas y los códigos desde [acá](https://www.indec.gob.ar/ftp/cuadros/poblacion/metadatos_censo2022_redatam.zip)).
+Al trabajar con las geometrías del censo recordá que en la mayoría de las provincias no hay correspondencia entre los gobiernos locales (Municipios) y los departamentos (partidos en PBA, comunas en CABA). Ver ([INDEC, 1999](https://biblioteca.indec.gob.ar/bases/minde/132_3.pdf%20)), (Vapñarsky, 2004). Podés descargar los metadatos del censo (incluídas las unidades geoestadísticas y los códigos desde [acá](https://www.indec.gob.ar/ftp/cuadros/poblacion/metadatos_censo2022_redatam.zip)).
 :::
 
 ## Clima Educativo del Hogar (REDATAM)
@@ -215,7 +213,7 @@ Si bien es una categoría ordinal, saco el promedio de clima educativo de los ho
 
 ```{r}
 clima <- 
-  clima %>%
+  clima |>
   mutate(total_hogares = muy_bajo + bajo + medio + alto +  muy_alto,
     promedio_eduhog = (
       1 * muy_bajo +
@@ -261,8 +259,6 @@ ggplot() +
 ```
 
 ```{r}
-lp <- st_transform(lp,4326) ## esta transofrmacionse hace para usar el tile
-
 grafico_clima <-
   ggplot() +
   geom_sf(
@@ -285,7 +281,9 @@ grafico_clima <-
     plot.title = element_text(face = "bold", hjust = 0.5, size = 16),
     plot.subtitle = element_text(hjust = 0.5, color = "gray30"),
     legend.position = "right",
-    legend.title = element_text(face = "bold", size = 10)
+    legend.title = element_text(face = "bold", size = 10), 
+    panel.grid = element_blank(),
+    axis.text = element_blank()
   )
 
 grafico_clima+
@@ -297,6 +295,8 @@ grafico_clima+
 ```
 
 ```{r}
+#| eval: false
+#| include: false
 lp_3857 <- st_transform(lp, 3857)
 
 library(maptiles)
@@ -314,25 +314,25 @@ layer_spatial(bg, alpha = 0.3)
 escuelas <-
   st_read(here('data/raw/educacion/establecimientos-educativos-30062025.geojson'))
 escuelas <- 
-  escuelas %>% filter(municipio_nombre == 'La Plata')
+  escuelas |> filter(municipio_nombre == 'La Plata')
 
 ```
 
 ## Accesibilidad escuelas secundarias
 
 ```{r}
-escuelas %>% 
-  st_drop_geometry() %>% 
+escuelas |> 
+  st_drop_geometry() |> 
   count(nivel)
 ```
 
 ```{r}
 secu <- 
-  escuelas %>% 
+  escuelas |> 
   filter(nivel == 'Nivel Secundario')
 ```
 
-Paso 3: Calcular Distancia a Escuelas más cercana Opción A: Distancia Euclidiana (en línea recta); al centroide
+Paso 3: Calcular Distancia a Escuelas más cercana: Distancia Euclidiana (en línea recta); al centroide
 
 ```{r}
 centroides <- 
@@ -362,14 +362,13 @@ save(centroides,
      file = here('data/processed/lp_centroides_radios.Rda'))
 ```
 
-
 ```{r}
 #| label: calculo-distancias
 #| fig-cap: "Cálculo de distancias"
 # Distancia a secundaria más cercana (en m)
 lp$dist_sec <- 
-  st_distance(centroides, secu) %>%
-  apply(1, min) %>%
+  st_distance(centroides, secu) |>
+  apply(1, min) |>
   set_units("m")
 
 lp$dist_sec <- 
@@ -385,8 +384,8 @@ ggplot() +
     color = NA,
     size = 0) +
   scale_fill_gradient(
-    low = "#00ff00",  
-    high = "#8B0000", 
+    low = "#00cc00",  
+    high = "#cc0000", 
     name = "Distancia en metros") +
     theme_minimal() +
   labs(
@@ -405,20 +404,19 @@ ggplot() +
 
 Genero un índice sintético que combine el promedio de la distancia normalizada (0 a 1) y el porcentaje de hogares con clima educativo bajo.
 
-
 ```{r}
 poblacion <- 
   read_excel(here("data/processed/redatam_censo/lp_edad_grandes_grupos.xlsX"),
              skip = 11,
              n_max = 1048)
 ```
+
 ```{r}
 lp <- 
   lp |> 
   left_join(poblacion[,c('Total','Código')],
             by = c('codigo' = 'Código'))
 ```
-
 
 ```{r}
 library(scales)
@@ -435,8 +433,6 @@ save(lp, file = here('data/processed/lp.Rda'))
 save(secu, file = here('data/processed/secundarias_lp.Rda'))
 
 ```
-
-
 
 ```{r}
 grafico_indice <- 
@@ -470,6 +466,8 @@ grafico_indice <-
 ```
 
 ```{r}
+#| eval: false
+#| include: false
 st_crs(lp)  # debería ser 4326
 
 # Paso 2: Reproyectar a EPSG:3857 (Google Web Mercator, necesario para tiles)
@@ -483,27 +481,33 @@ grafico_clima+
 layer_spatial(bg, alpha = 0.3) 
 ```
 
-descargar y probar con otros datasets: salud, datos abiertos pba.
-
-universidad..avisos inmobiliarios; ver ideba
-
-levantar un csv, aca probar con uno de inmo, hacer una limpieza con rinmoscrap o jpoin con poligonos da arba, censo etc.
-
-tp2
-
-calcular el clima educativo del área de influencia (*buffer)* de cada escuela.
-
-escuelas secundarias:
-
-buffer 500 metros
-
-intersección con radios censales: st_filter y st_intersect. criterios de corte basados en la poporción del área intersectada sobre el total del radio
-
-tp3
-
-promedio de distancia manhattan de 4 puntos elegidos al azar dentro del radio
+```{r}
+#| eval: false
+#| include: false
+#descargar y probar con otros datasets: salud, datos #abiertos pba.
+#
+#universidad..avisos inmobiliarios; ver ideba
+#
+#levantar un csv, aca probar con uno de inmo, hacer una #limpieza con rinmoscrap o jpoin con poligonos da arba, #censo etc.
+#
+#tp2
+#
+#calcular el clima educativo del área de influencia (buffer) #de cada escuela.
+#
+#escuelas secundarias:
+#
+#buffer 500 metros
+#
+#intersección con radios censales: st_filter y st_intersect. #criterios de corte basados en la poporción del área #intersectada sobre el total del radio
+#
+#tp3
+#
+#promedio de distancia manhattan de 4 puntos elegidos al #azar dentro del radio
+```
 
 ```{r}
+#| eval: false
+#| include: false
 #library(mapboxapi)
 
 #install.packages('tidygeocoder')
