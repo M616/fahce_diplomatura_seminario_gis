@@ -669,11 +669,11 @@ La función `st_difference()` devuelve las partes de una geometría que **no se 
 
 `st_difference(x, y)` calcula la parte de `x` que **no se superpone con** `y`. Si `y` tiene **múltiples geometrías**, la diferencia se aplica con **cada geometría por separado**, lo cual puede:
 
-```         
--   Generar **resultados inesperados**, como duplicaciones o geometrías partidas.
+-   Generar resultados inesperados, como duplicaciones o geometrías partidas.
+
 -   Aumentar la cantidad de filas del resultado.
+
 -   Complicar la interpretación espacial.
-```
 
 Es recomendable **fusionar previamente** las geometrías de `y` con `st_union()`, para que la diferencia se calcule respecto de una única geometría combinada.
 :::
