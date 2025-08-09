@@ -36,9 +36,9 @@ library(units)       # Manejo de distancias (metros/km)
 library(nngeo)       # Para cálculos de distancia más cercana  
 library(here)        # Para manejar el path
 library(janitor)     # Para limpieza de datos
-library(ggspatial)
-library(maptiles)
-library(prettymapr)
+library(ggspatial)   # Visualización
+library(maptiles)    # Visualización
+library(prettymapr)  # Visualización
 ```
 
 ::: callout-important
@@ -53,80 +53,83 @@ En contextos donde otras fuentes tienen baja cobertura o disponibilidad (como re
 -   **Variables clave para ciencias sociales**: nivel educativo, hábitat, acceso a servicios, características de los hogares, actividad económica, entre otras.
 :::
 
-::: callout-warning
-#### Enlaces útiles
-
-DPE Bs As https://www.mapas.estadistica.ec.gba.gov.ar/portal/apps/sites/#/mapas-estadisticos/pages/descargas-shapes
-
-Anexo censo 2022. Código numérico para gobiernos locales <https://www.indec.gob.ar/ftp/cuadros/menusuperior/clasificadores/anexo_codigo_gobiernos_locales_2022.pdf>
-
-Base REDATAM <https://redatam.indec.gob.ar/binarg/RpWebEngine.exe/Portal?BASE=CPV2022&lang=ESP>
-
-<https://portalgeoestadistico.indec.gob.ar/maps/geoportal/nota_gobiernos_locales.pdf>
-
-IGN <https://www.ign.gob.ar/NuestrasActividades/InformacionGeoespacial/CapasSIG>
-:::
-
 ```{r}
 radios <- 
   st_read(here('data/raw/censo/radios_censales/Radios 2022 v2025-1.shp'))
 ```
 
+Con `st_crs()` nos fijamos el sistema de coordenadas del geodataframe cargado:
+
 ```{r}
-radios |> st_drop_geometry() |> glimpse()
-#esto de mapview para explorar puede demorar mucho
-#radios |> filter(prov == '06') |> mapview()
+st_crs(radios)
 ```
 
-## Visualización en `ggplot()` con `geom_sf()`
+Este sistema de coordenadas es proyectado y su uso está bastante extendido en plataformas como Google Maps, OSM, entre otras. <https://epsg.io/3857>
 
-A veces explorar con mapview puede no ser eficiente.
+Exploramos el dataframe con `glimpse()`:
 
-Probamos con ggplot para graficar y ver los radios. En este caso los radios censales de la Provincia de Buenos Aires (prov = 06)
+```{r}
+radios |> st_drop_geometry() |> glimpse()
+
+```
+
+Utilizamos `clean_names()` para limpiar los nombres de las columnas y pasarlas a minúscula.
 
 ```{r}
 radios <- 
   radios |> clean_names()
+```
 
-radios_pba <- 
-  radios |> filter(prov == '06')
+::: callout-warning
+#### Enlaces útiles
 
-ggplot(radios_pba) +
-  geom_sf(fill = "lightblue", color = "gray40", size = 0.1) +
-  labs(title = "Radios Censales - Provincia de Buenos Aires",
+Geometrías Partidos Bs As. DPE <https://www.mapas.estadistica.ec.gba.gov.ar/portal/apps/sites/#/mapas-estadisticos/pages/descargas-shapes>
+
+Base REDATAM <https://redatam.indec.gob.ar/binarg/RpWebEngine.exe/Portal?BASE=CPV2022&lang=ESP>
+
+Municipio, localidad y departamento: tres conceptos que suelen confundirse. INDEC <http://municipios.unq.edu.ar/modules/mislibros/archivos/municipium03.pdf>
+
+Capas IGN <https://www.ign.gob.ar/NuestrasActividades/InformacionGeoespacial/CapasSIG>
+:::
+
+## Visualización en `ggplot()` con `geom_sf()`
+
+`mapview()` es muy útil para explorar datos espaciales porque es interactivo: podemos movernos, hacer zoom y ver detalles.\
+Pero, cuando trabajamos con capas muy grandes, como todos los radios censales de la Provincia de Buenos Aires puede volverse lento y pesado. Además no siempre es cómodo integrarlo en un informe o presentación.
+
+En esos casos, `ggplot()` con `geom_sf()` es una gran alternativa.\
+Nos permite crear mapas estáticos que cargan rápido, se ven bien desde el primer momento y son totalmente personalizables.
+Al estar dentro del **tidyverse**, se integra de forma natural con `dplyr`, `tidyr` y el resto de herramientas que usamos para procesar datos, sin salir del mismo flujo de trabajo.
+
+```{r}
+radios |> 
+  filter(prov == '06') |> 
+  ggplot() +
+  geom_sf(fill = NA, 
+          color = "gray40", size = 0.1) +
+  labs(title = "Radios Censales - PBA",
        subtitle = "Fuente: INDEC",
        caption = "Cod. Provincia 06") +
-  theme_minimal()
+  #theme_minimal()
+  theme(
+    panel.background = element_blank(),  
+    plot.background = element_blank(),   
+    panel.grid = element_blank(),        
+    axis.text = element_blank(),         
+    axis.title = element_blank(),
+    axis.ticks = element_blank()
+  )
 
 ```
 
-```{r}
-radios_pba <- radios |> filter(prov == '06' & depto == '441' )
-
-ggplot(radios_pba) +
-  geom_sf(fill = "lightblue", color = "gray40", size = 0.1) +
-  labs(title = "Radios Censales - Provincia de Buenos Aires",
-       subtitle = "Fuente: INDEC",
-       caption = "Cod. Provincia 06") +
-  theme_minimal()
-```
-
-<https://spatialreference.org/ref/epsg/3857/>
-
-Filtramos el departamento de La Plata (ver documentación censo 2022, 'Códigos Geográficos').
-
-La Plata
-
-06441
+Ahora vamos a graficar el partido (departamento) de La Plata. El código es 441 (ver documentación censo 2022, 'Códigos Geográficos').
 
 ```{r}
-#paso a minusculos 
-#names(radios) <- 
-#  tolower(names(radios))
+#| eval: false
+#| include: false
 
 radios <- 
   radios |> mutate(depto_ = paste0(prov,depto) )
-
 
 lp <- 
   radios |> filter(depto_ == '06441')
@@ -135,21 +138,29 @@ lp <-
 ```
 
 ```{r}
-#| eval: false
-#| include: false
-# Crear el mapa
+#| echo: true
 lp <- 
-  st_transform(lp, 4326)
+  radios |> 
+  filter(depto == '441')
 ```
 
 ```{r}
 ggplot() +
-  geom_sf(data = lp, fill = NA, color = "blue", size = 0.3) +
+  geom_sf(data = lp, 
+          fill = "lightblue", 
+          color = "grey",
+          size = 0.1) +
   theme_minimal() +
   labs(title = "Radios Censales - La Plata")
 ```
 
-El radio 064417101 es la isla martin garcía
+El radio 064417101 es la isla martin garcía, lo podemos ver con `mapview()`.
+
+```{r}
+#| echo: true
+#| eval: false
+mapview(lp,label = 'cod_2022')
+```
 
 ```{r}
 lp <- 
@@ -159,9 +170,12 @@ lp <-
 
 ```{r}
 ggplot() +
-  geom_sf(data = lp, fill = NA, color = "blue", size = 0.3) +
+  geom_sf(data = lp, fill = NA, color = "lightgrey", size = 0.3) +
   theme_minimal() +
-  labs(title = "Radios Censales - La Plata")
+  labs(title = "Radios Censales - La Plata")+
+  theme(panel.grid = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank())
 ```
 
 ::: callout-warning
@@ -170,11 +184,11 @@ Al trabajar con las geometrías del censo recordá que en la mayoría de las pro
 
 ## Clima Educativo del Hogar (REDATAM)
 
-Por el momento las consultas a la base censal las tenemos que hacer a través de la página del INDEC, usando REDATAM.
+Hasta acá trabajamos con las **geometrías de los radios censales** del Censo 2022 que definen las unidades territoriales básicas para el análisis espacial. Sin embargo la información detallada de cada radio, como características socioeconómicas o educativas de los hogares, no está incluida directamente en estas geometrías.
+
+Para acceder a esos datos es necesario utilizar la plataforma **REDATAM** del INDEC que permite consultar, filtrar y descargar microdatos censales. Por ejemplo una variable que podemos obtener es el **clima educativo del hogar (EDUHOG)**, que representa el promedio de años de estudio alcanzados por los miembros mayores de 18 años en cada hogar. Esta variable tiene categorías que van desde “Muy bajo” hasta “Muy alto”, según el nivel educativo promedio. El paso siguiente consiste en integrar (hacer un join por código geográfico) la información descargada desde REDATAM con las geometrías de los radios censales para poder realizar análisis territoriales más completos y visualizaciones geográficas enriquecidas.
 
 (ver documentación censo 2022, 'Definiciones y conceptos. Definiciones de la base de datos').
-
-Clima educativo del hogar (EDUHOG): promedio de años de estudio alcanzados para cada miembro del hogar de 18 años y más del hogar. Las categorías son:
 
 | Código | Rótulo         |
 |--------|----------------|
@@ -185,17 +199,7 @@ Clima educativo del hogar (EDUHOG): promedio de años de estudio alcanzados para
 | 5      | Muy alto       |
 | 9      | No corresponde |
 
-Muy bajo: menor a siete de años de máximo nivel de instrucción.
-
-Bajo: entre siete y diez años de máximo nivel de instrucción.
-
-Medio: entre once y trece años de máximo nivel de instrucción.
-
-Alto: entre catorce y quince años de máximo nivel de instrucción.
-
-Muy alto: dieciséis años o más de máximo nivel de instrucción.
-
-No corresponde: todas las personas del hogar tienen menos de 18 años o tienen un máximo nivel de instrucción ignorado.
+En este caso realizamos una consulta en **REDATAM** para obtener la información de **clima educativo del hogar (EDUHOG)** correspondiente a los radios censales del **Partido de La Plata**.
 
 ```{r}
 library(readxl)
@@ -209,7 +213,9 @@ clima <-
 head(clima)
 ```
 
-Si bien es una categoría ordinal, saco el promedio de clima educativo de los hogares por radio censal.
+Si bien **clima educativo del hogar (EDUHOG)** es una variable categórica ordinal en este análisis calculamos el promedio de sus valores numéricos asignados para los hogares dentro de cada radio censal.
+
+Este promedio permite obtener una medida resumida del nivel educativo predominante en cada radio, facilitando su comparación y representación espacial, a pesar de la naturaleza ordinal de la variable.
 
 ```{r}
 clima <- 
@@ -227,21 +233,15 @@ clima <-
 head(clima)
 ```
 
-Uno los datasets
+Para realizar la unión (join) entre las geometrías de los radios censales y la información de clima educativo, es necesario que las variables clave para el cruce tengan el mismo tipo de dato.
 
-```{r}
-#| eval: false
-#| message: true
-#| warning: true
+En el objeto `lp`, la variable que identifica cada radio censal es `cod_2022` y está almacenada como **carácter (character)**.
 
-left_join(lp,
-          clima,
-          by = c('cod_2022' = 'codigo') )
+En cambio, en el objeto `clima`, el código del radio censal se encuentra en la variable `codigo` y es de tipo **numérico (numeric)**.
 
+Para asegurar la compatibilidad y evitar problemas en la unión, convertimos la variable `cod_2022` en `lp` a numérica utilizando `as.double()`.
 
-```
-
-Tienen formato distitno
+Luego realizamos el join por esta variable común ya tipificada, para incorporar la información de clima educativo a las geometrías de los radios censales.
 
 ```{r}
 lp <- 
@@ -252,7 +252,8 @@ lp <-
 
 ```{r}
 ggplot() +
-  geom_sf(data = lp, aes(fill = promedio_eduhog)) +
+  geom_sf(data = lp, 
+          aes(fill = promedio_eduhog)) +
   theme_minimal() +
   labs(title = "Clima educativo - La Plata")
 
@@ -294,13 +295,22 @@ grafico_clima+
 
 ```
 
+El mapa que generamos muestra claramente la distribución del clima educativo por radio censal. Sin embargo, para facilitar una mejor interpretación espacial y contextualizar estos datos, es útil agregar un fondo de mapa base que muestre calles, ríos u otros elementos geográficos reconocibles. Este fondo se conoce como un **tile**, que consiste en una capa compuesta por imágenes cuadriculadas que representan detalles geográficos. Al superponer este tile debajo de los polígonos, el mapa gana en claridad y comprensión espacial.
+
+En `ggplot2`, usando el paquete **ggspatial**, podemos agregar este fondo fácilmente con la función `annotation_map_tile()`. Esta función descarga automáticamente los tiles desde proveedores de mapas en línea (por defecto, OpenStreetMap), y los superpone en el gráfico. Podemos modificar parámetros como:
+
+-   La transparencia del tile con el argumento `alpha` para evitar que el fondo opaque la información principal.
+
+-   La fuente o proveedor del tile, seleccionando entre diferentes opciones disponibles en `ggspatial` para adaptar el estilo del mapa base a nuestras necesidades.
+
+-   Además, es común incluir elementos como la barra de escala y la flecha indicadora del norte para facilitar la lectura y orientación del mapa. Estas se agregan con las funciones `annotation_scale()` y `annotation_north_arrow()` respectivamente, donde también es posible ajustar su ubicación y estilo.
+
 ```{r}
 #| eval: false
 #| include: false
 lp_3857 <- st_transform(lp, 3857)
-
 library(maptiles)
-# Paso 3: Obtener fondo satelital (tile) desde Esri
+
 bg <- get_tiles(lp_3857, provider = "OpenTopoMap", crop = TRUE)
 
 grafico_clima+
@@ -384,10 +394,13 @@ ggplot() +
     color = NA,
     size = 0) +
   scale_fill_gradient(
-    low = "#00cc00",  
-    high = "#cc0000", 
+    low = "#FFCCCB",  
+    high = "#8B0000",
     name = "Distancia en metros") +
-    theme_minimal() +
+  #scale_fill_viridis_c(#option = "C",
+  #                     name = "Distancia en metros",
+  #                     alpha =  0.3)+
+  theme_minimal() +
   labs(
     title = "Accesibilidad escuelas secundarias - La Plata",
     subtitle = "Radios censales con mayor distancia en rojo intenso",
