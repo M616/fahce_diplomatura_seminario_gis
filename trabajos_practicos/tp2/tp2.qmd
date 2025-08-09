@@ -22,7 +22,7 @@ El ejercicio se desarrolla en el partido de **La Plata**, y se trabajará exclus
 
 ------------------------------------------------------------------------
 
-## Paso 1: Carga y preparación de datos censales
+## Carga y preparación de datos censales
 
 ```{r}
 #| label: setup
@@ -98,8 +98,7 @@ Capas IGN <https://www.ign.gob.ar/NuestrasActividades/InformacionGeoespacial/Cap
 Pero, cuando trabajamos con capas muy grandes, como todos los radios censales de la Provincia de Buenos Aires puede volverse lento y pesado. Además no siempre es cómodo integrarlo en un informe o presentación.
 
 En esos casos, `ggplot()` con `geom_sf()` es una gran alternativa.\
-Nos permite crear mapas estáticos que cargan rápido, se ven bien desde el primer momento y son totalmente personalizables.
-Al estar dentro del **tidyverse**, se integra de forma natural con `dplyr`, `tidyr` y el resto de herramientas que usamos para procesar datos, sin salir del mismo flujo de trabajo.
+Nos permite crear mapas estáticos que cargan rápido, se ven bien desde el primer momento y son totalmente personalizables. Al estar dentro del **tidyverse**, se integra de forma natural con `dplyr`, `tidyr` y el resto de herramientas que usamos para procesar datos, sin salir del mismo flujo de trabajo.
 
 ```{r}
 radios |> 
@@ -170,7 +169,10 @@ lp <-
 
 ```{r}
 ggplot() +
-  geom_sf(data = lp, fill = NA, color = "lightgrey", size = 0.3) +
+  geom_sf(data = lp, 
+          fill = NA, 
+          color = "lightgrey", 
+          size = 0.3) +
   theme_minimal() +
   labs(title = "Radios Censales - La Plata")+
   theme(panel.grid = element_blank(),
@@ -209,7 +211,6 @@ clima <-
 
 clima <- 
   clean_names(clima)
-
 head(clima)
 ```
 
@@ -230,7 +231,7 @@ clima <-
     ) / (total_hogares)
   )
 
-head(clima)
+summary(clima$promedio_eduhog)
 ```
 
 Para realizar la unión (join) entre las geometrías de los radios censales y la información de clima educativo, es necesario que las variables clave para el cruce tengan el mismo tipo de dato.
@@ -241,7 +242,7 @@ En cambio, en el objeto `clima`, el código del radio censal se encuentra en la 
 
 Para asegurar la compatibilidad y evitar problemas en la unión, convertimos la variable `cod_2022` en `lp` a numérica utilizando `as.double()`.
 
-Luego realizamos el join por esta variable común ya tipificada, para incorporar la información de clima educativo a las geometrías de los radios censales.
+Luego realizamos el join por esta variable común para incorporar la información de clima educativo a las geometrías de los radios censales.
 
 ```{r}
 lp <- 
@@ -259,7 +260,19 @@ ggplot() +
 
 ```
 
-```{r}
+El mapa que generamos muestra claramente la distribución del clima educativo por radio censal. Sin embargo, para facilitar una mejor interpretación espacial y contextualizar estos datos, es útil agregar un fondo de mapa base que muestre calles, ríos u otros elementos geográficos reconocibles. Este fondo se conoce como un **tile**, que consiste en una capa compuesta por imágenes cuadriculadas que representan detalles geográficos. Al superponer este tile debajo de los polígonos, el mapa gana en claridad y comprensión espacial.
+
+En `ggplot2`, usando el paquete **ggspatial**, podemos agregar este fondo fácilmente con la función `annotation_map_tile()`. Esta función descarga automáticamente los tiles desde proveedores de mapas en línea (por defecto, OpenStreetMap), y los superpone en el gráfico. Podemos modificar parámetros como:
+
+-   La transparencia del tile con el argumento `alpha` para evitar que el fondo opaque la información principal.
+
+-   La fuente o proveedor del tile, seleccionando entre diferentes opciones disponibles en `ggspatial` para adaptar el estilo del mapa base a nuestras necesidades.
+
+-   Además, es común incluir elementos como la barra de escala y la flecha indicadora del norte para facilitar la lectura y orientación del mapa. Estas se agregan con las funciones `annotation_scale()` y `annotation_north_arrow()` respectivamente, donde también es posible ajustar su ubicación y estilo.
+
+```{r, fig.align='center', fig.width=7, fig.height=6}
+#| message: false
+#| warning: false
 grafico_clima <-
   ggplot() +
   geom_sf(
@@ -295,16 +308,6 @@ grafico_clima+
 
 ```
 
-El mapa que generamos muestra claramente la distribución del clima educativo por radio censal. Sin embargo, para facilitar una mejor interpretación espacial y contextualizar estos datos, es útil agregar un fondo de mapa base que muestre calles, ríos u otros elementos geográficos reconocibles. Este fondo se conoce como un **tile**, que consiste en una capa compuesta por imágenes cuadriculadas que representan detalles geográficos. Al superponer este tile debajo de los polígonos, el mapa gana en claridad y comprensión espacial.
-
-En `ggplot2`, usando el paquete **ggspatial**, podemos agregar este fondo fácilmente con la función `annotation_map_tile()`. Esta función descarga automáticamente los tiles desde proveedores de mapas en línea (por defecto, OpenStreetMap), y los superpone en el gráfico. Podemos modificar parámetros como:
-
--   La transparencia del tile con el argumento `alpha` para evitar que el fondo opaque la información principal.
-
--   La fuente o proveedor del tile, seleccionando entre diferentes opciones disponibles en `ggspatial` para adaptar el estilo del mapa base a nuestras necesidades.
-
--   Además, es común incluir elementos como la barra de escala y la flecha indicadora del norte para facilitar la lectura y orientación del mapa. Estas se agregan con las funciones `annotation_scale()` y `annotation_north_arrow()` respectivamente, donde también es posible ajustar su ubicación y estilo.
-
 ```{r}
 #| eval: false
 #| include: false
@@ -318,17 +321,19 @@ layer_spatial(bg, alpha = 0.3)
 
 ```
 
-## Paso 2: carga y exploración de establecimientos educativos
+## Accesibilidad escuelas secundarias
+
+Cargamos el dataset de escuelas georreferenciadas trabajado en el TP anterior y filtramos los establecimientos situados dentro del partido de La Plata. A partir de esta información, vamos a calcular la accesibilidad a las escuelas secundarias para cada radio censal. En este contexto, la accesibilidad hace referencia a la distancia más corta (medida en línea recta, o distancia euclidiana) entre el centroide de cada radio y el establecimiento educativo más cercano. Este indicador permite identificar áreas con mejor o peor cobertura territorial, lo que resulta útil para el análisis de desigualdades en la distribución espacial de los servicios educativos.
 
 ```{r}
 escuelas <-
-  st_read(here('data/raw/educacion/establecimientos-educativos-30062025.geojson'))
+  st_read(here('data/raw/educacion/establecimientos-educativos-28072025.geojson'))
 escuelas <- 
   escuelas |> filter(municipio_nombre == 'La Plata')
 
 ```
 
-## Accesibilidad escuelas secundarias
+Queremos hacerlo para las escuelas secundarias:
 
 ```{r}
 escuelas |> 
@@ -342,24 +347,28 @@ secu <-
   filter(nivel == 'Nivel Secundario')
 ```
 
-Paso 3: Calcular Distancia a Escuelas más cercana: Distancia Euclidiana (en línea recta); al centroide
+A continuación, calculamos los centroides para cada radio censal utilizando la función `st_centroid()`. El centroide es un punto que representa la posición “central” de una geometría, calculado a partir de su forma y extensión. En términos simples, puede pensarse como el “centro de gravedad” del polígono que define el radio censal. Si bien no siempre coincide con un punto físicamente accesible (por ejemplo, podría caer en un área sin construcciones), resulta muy útil para realizar cálculos espaciales, como medir distancias a otros puntos de interés.
 
 ```{r}
+#| message: false
+#| warning: false
 centroides <- 
   st_centroid(lp)
 ```
 
-✅ CRS recomendado para La Plata (POSGAR 2007 / UTM zone 21S):
-
-```         
-EPSG: 5347
-
-Nombre completo: POSGAR 2007 / Argentina 3
-
-Zona: Cubre la provincia de Buenos Aires (incluida La Plata)
-
-Unidad: metros (ideal para calcular distancias)
+```{r, fig.align='center', fig.width=7, fig.height=6}
+ggplot(lp) +
+  geom_sf() +
+  geom_sf(data = centroides, size = 0.01, color = "tomato") +
+  theme_minimal() +
+  labs(title = "Radios censales y sus centroides - Partido de La Plata")
 ```
+
+Hasta acá los datos espaciales que cargamos están en el sistema de referencia EPSG:3857, conocido como **Web Mercator** que es muy usado para mapas web pero no es óptimo para cálculos precisos de distancia debido a sus distorsiones especialmente en zonas alejadas del ecuador.
+
+Por ello para realizar mediciones espaciales más exactas —como calcular distancias euclidianas entre centroides y escuelas— transformamos los objetos (`lp`, `centroides`, `secu`) al sistema proyectado **EPSG:5347** (POSGAR 2007 / Argentina 5), que está diseñado para la Argentina y usa metros como unidad.
+
+Esta transformación garantiza que las distancias calculadas sean más precisas y consistentes con la realidad territorial además de asegurar que todas las capas se encuentren en el mismo sistema espacial para un correcto análisis y visualización.
 
 ```{r}
 lp <- st_transform(lp, 5347)
@@ -367,26 +376,48 @@ centroides <- st_transform(centroides, 5347)
 secu <- st_transform(secu, 5347)
 ```
 
+Guardamos los centroides generados en nuestra carpeta de datos procesados:
+
 ```{r}
 save(centroides, 
      file = here('data/processed/lp_centroides_radios.Rda'))
 ```
 
+Para calcular la accesibilidad a las escuelas secundarias desde cada radio censal, utilizamos la función `st_nn()` del paquete **nngeo**. Esta función nos permite encontrar para cada centroide del radio censal la escuela más cercana (`k = 1`) y obtener la distancia a esa escuela.
+
+El resultado es una lista donde:
+
+-   `nn[[1]]` contiene los índices de las escuelas más cercanas,
+
+-   `nn[[2]]` contiene las distancias correspondientes.
+
+Luego, extraemos las distancias y las asignamos directamente a una nueva variable `dist_sec` dentro del objeto `lp`.
+
 ```{r}
 #| label: calculo-distancias
-#| fig-cap: "Cálculo de distancias"
+#| eval: false
+#| fig-cap: Cálculo de distancias
+#| include: false
 # Distancia a secundaria más cercana (en m)
 lp$dist_sec <- 
   st_distance(centroides, secu) |>
-  apply(1, min) |>
-  set_units("m")
-
-lp$dist_sec <- 
-  drop_units(lp$dist_sec)
+  apply(1, min) 
 ```
 
 ```{r}
+#| message: false
+nn <-
+  st_nn(centroides,
+        secu,
+        k = 1,
+        returnDist = TRUE)
+```
 
+```{r}
+lp$dist_sec <-  unlist(nn[['dist']])
+```
+
+```{r,fig.align='center', fig.width=7, fig.height=6}
 ggplot() +
   geom_sf(
     data = lp,
@@ -415,9 +446,19 @@ ggplot() +
 
 ## Índice sintético de accesibilidad y clima educativo
 
-Genero un índice sintético que combine el promedio de la distancia normalizada (0 a 1) y el porcentaje de hogares con clima educativo bajo.
+Para generar un índice sintético que combine la accesibilidad educativa y el clima educativo del hogar, primero normalizamos ambas variables para ponerlas en una misma escala de 0 a 1 y poder combinarlas. Normalizar es transformar los datos para que sus valores queden entre 0 y 1, facilitando la comparación y combinación de variables con unidades o rangos diferentes.
+
+La variable de distancia (`dist_sec`) mide qué tan lejos está un radio censal de la escuela más cercana; valores altos indican peor accesibilidad. Sin embargo, al combinarla con el clima educativo (donde valores más altos son mejores), queremos que una mejor accesibilidad (menor distancia) se traduzca en un valor más alto en la escala normalizada.
+
+Para lograr esto, invertimos la distancia multiplicándola por -1 antes de normalizar con `rescale()`. Así, las distancias cortas se convierten en valores cercanos a 1 y las largas en valores cercanos a 0.
+
+Luego, normalizamos el promedio del clima educativo (`promedio_eduhog`) para que también esté entre 0 y 1.
+
+Finalmente, calculamos el índice como la media ponderada de ambos valores normalizados, integrando accesibilidad y clima educativo en un solo indicador.
 
 ```{r}
+#| eval: false
+#| include: false
 poblacion <- 
   read_excel(here("data/processed/redatam_censo/lp_edad_grandes_grupos.xlsX"),
              skip = 11,
@@ -425,6 +466,8 @@ poblacion <-
 ```
 
 ```{r}
+#| eval: false
+#| include: false
 lp <- 
   lp |> 
   left_join(poblacion[,c('Total','Código')],
@@ -432,6 +475,7 @@ lp <-
 ```
 
 ```{r}
+#| message: false
 library(scales)
 
 lp$dist_norm <- rescale(-lp$dist_sec)
@@ -447,7 +491,8 @@ save(secu, file = here('data/processed/secundarias_lp.Rda'))
 
 ```
 
-```{r}
+```{r fig.align='center', fig.height=6, fig.width=7}
+#| message: false
 grafico_indice <- 
   ggplot() +
   geom_sf(
@@ -571,5 +616,3 @@ save(lp, file = here('lp.Rda'))
 
 
 ```
-
-interseccion distancia graficar_mapa
